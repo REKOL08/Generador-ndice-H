@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador de informe · Índice h · GI DICART</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--paper:#F6F2E9;--paper2:#FBF8F1;--ink:#1B2A30;--ink2:#46565C;--ink3:#8A969A;--line:#E2DACB;--line2:#D2C8B4;
+ --teal:#2C6E80;--teal-d:#1E4F5E;--ochre:#B5713A;--green:#4E7A4E;--card:#FFFFFF;--red:#A6483C;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hanken Grotesk',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:38px 28px 70px}
+.serif{font-family:'Fraunces',serif}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ochre);font-weight:600}
+h1{font-family:'Fraunces',serif;font-weight:500;font-size:36px;line-height:1.05;letter-spacing:-.01em;margin:6px 0 8px}
+.sub{color:var(--ink2);font-size:14.5px;max-width:720px}
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0 8px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;position:relative}
+.snum{position:absolute;top:-12px;left:22px;width:26px;height:26px;background:var(--teal-d);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.scard h3{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin:6px 0 8px}
+.scard p{color:var(--ink2);font-size:13px;margin-bottom:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;font-size:14px;font-weight:700;border:none;border-radius:11px;cursor:pointer;font-family:inherit;background:var(--teal-d);color:#fff}
+.btn:hover{background:#163d49}
+.btn.ghost{background:var(--card);color:var(--teal-d);border:1px solid var(--line2)}
+.btn.ghost:hover{border-color:var(--teal);background:var(--paper2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.drop{border:2px dashed var(--line2);border-radius:12px;padding:26px 18px;text-align:center;color:var(--ink2);cursor:pointer;transition:.15s;background:var(--paper2)}
+.drop:hover,.drop.over{border-color:var(--teal);background:#fff}
+.drop b{color:var(--teal-d)}
+.drop .small{font-size:12px;color:var(--ink3);margin-top:6px}
+.sheetsel{margin-top:14px;display:none}
+.sheetsel label{font-size:12px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:5px}
+select{padding:8px 11px;font-size:13.5px;border:1px solid var(--line2);border-radius:9px;background:#fff;color:var(--ink);font-family:inherit;width:100%}
+.status{margin:22px 0 0}
+.msg{border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:10px;display:flex;gap:10px}
+.msg.ok{background:#EEF4EC;border:1px solid #CADBC6;color:#2F5130}
+.msg.warn{background:#FCEFD8;border:1px solid #E8D2A6;color:#5C4318}
+.msg.err{background:#FBEEE6;border:1px solid #E6C6B4;color:#7A2E22}
+.msg b{font-weight:700}
+.resultbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0 12px}
+.previewbox{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#fff;display:none}
+.previewbox .ph{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--paper2);font-size:12px;color:var(--ink2);font-weight:600}
+iframe{width:100%;height:760px;border:0;display:block;background:#F6F2E9}
+.note{font-size:12px;color:var(--ink3);margin-top:8px}
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+summary{cursor:pointer;font-weight:600;color:var(--teal-d)}
+details ul{margin:10px 0 0 18px;color:var(--ink2);font-size:13px}
+details li{margin-bottom:5px}
+code{background:var(--paper2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+.footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink3)}
+@media(max-width:720px){.steps-grid{grid-template-columns:1fr}h1{font-size:29px}iframe{height:560px}}
+</style></head><body><div class="wrap">
+
+<div class="eyebrow">GI DICART · Facultad de Diseño y Bellas Artes</div>
+<h1 class="serif">Generador de informe de índice h</h1>
+<p class="sub">Carga la base de datos de productos (Excel exportado de GrupLAC) y obtén automáticamente el informe de índice h con la plantilla institucional. Descarga primero la plantilla para llenar el Excel sin errores.</p>
+
+<div class="steps-grid">
+  <div class="scard"><div class="snum">1</div>
+    <h3 class="serif">Descarga la plantilla</h3>
+    <p>Un Excel con las columnas correctas, ejemplos y la lista de tipos válidos. Llénalo con tus productos para evitar errores al generar.</p>
+    <button class="btn ghost" onclick="downloadTemplate()">⬇ Descargar plantilla Excel</button>
+  </div>
+  <div class="scard"><div class="snum">2</div>
+    <h3 class="serif">Carga tu Excel</h3>
+    <p>Sube el archivo lleno. Se procesa en tu navegador: nada se envía a ningún servidor.</p>
+    <div class="drop" id="drop">
+      <div><b>Haz clic o arrastra</b> tu archivo .xlsx aquí</div>
+      <div class="small">Columnas esperadas: Tipo · Nombre · Año · Mes · Scopus · Dimensions · Altmetric</div>
+    </div>
+    <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
+    <div class="sheetsel" id="sheetsel"><label>Hoja a usar</label><select id="sheet" onchange="regen()"></select></div>
+  </div>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="resultbar" id="resultbar" style="display:none">
+  <button class="btn" onclick="downloadReport()">⬇ Descargar informe HTML</button>
+  <button class="btn ghost" onclick="openReport()">↗ Abrir en pestaña nueva</button>
+  <span class="note" id="genmeta"></span>
+</div>
+
+<div class="previewbox" id="previewbox">
+  <div class="ph"><span>Vista previa del informe</span><span id="phmeta"></span></div>
+  <iframe id="preview" title="Vista previa"></iframe>
+</div>
+
+<details>
+  <summary>¿Cómo se clasifican los productos y qué cuenta para el índice h?</summary>
+  <ul>
+    <li><b>Núcleo citable</b> (entra al índice h): artículos en revista especializada, libros resultado de investigación y capítulos de libro.</li>
+    <li><b>No entran al índice h</b>: prensa y columnas de opinión, divulgación, datos complementarios, tutorías, producción técnica y obras de arte/diseño (estas últimas se reportan aparte como creación).</li>
+    <li>La clasificación se hace por el texto de la columna <code>Tipo</code> (formato GrupLAC/Minciencias). Los tipos no reconocidos se marcan como «Otro» y se reportan en el aviso.</li>
+    <li>Si las columnas <code>Scopus</code> o <code>Dimensions</code> traen citas, se cargan automáticamente en la calculadora (se toma el mayor de las dos por obra). Siempre puedes ajustarlas en el informe.</li>
+    <li>Los títulos duplicados del núcleo se consolidan en una sola obra.</li>
+  </ul>
+</details>
+
+<div class="footer">Procesamiento 100% en el navegador (SheetJS + Chart.js). Pensado para publicarse en GitHub Pages. El informe generado es un archivo HTML autónomo que puedes versionar o compartir.</div>
+</div>
+
+<script type="text/template" id="reportTpl">
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cálculo de índice h · GI DICART</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script>
+<style>
+:root{--paper:#F6F2E9;--paper2:#FBF8F1;--ink:#1B2A30;--ink2:#46565C;--ink3:#8A969A;--line:#E2DACB;--line2:#D2C8B4;
+ --teal:#2C6E80;--teal-d:#1E4F5E;--ochre:#B5713A;--plum:#7C4A63;--green:#4E7A4E;--card:#FFFFFF;--red:#A6483C;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hanken Grotesk',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:38px 28px 70px}
+.serif{font-family:'Fraunces',serif}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ochre);font-weight:600}
+h1{font-family:'Fraunces',serif;font-weight:500;font-size:38px;line-height:1.05;letter-spacing:-.01em;margin:6px 0 8px}
+.sub{color:var(--ink2);font-size:14.5px;max-width:740px}
+.scope{display:inline-flex;align-items:center;gap:7px;background:var(--teal-d);color:#F3E2C9;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:5px 13px;border-radius:20px;margin-top:14px}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0 8px}
+.icard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;position:relative;overflow:hidden}
+.icard.ipp{background:var(--teal-d);border-color:var(--teal-d);color:#fff}
+.icard.pending{background:linear-gradient(180deg,#FBF8F1,#F4EEE2)}
+.icard .lbl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;opacity:.85}
+.icard .big{font-family:'Fraunces',serif;font-size:62px;line-height:1;font-weight:500;margin:10px 0 4px}
+.icard.ipp .big{color:#F3E2C9}
+.icard .note{font-size:12.5px;line-height:1.45;opacity:.9}
+.icard .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin-bottom:2px}
+.tag-pend{background:#EADBC4;color:#7A5418}.tag-ok{background:rgba(243,226,201,.18);color:#F3E2C9}
+.banner{display:flex;gap:12px;background:#FCEFD8;border:1px solid #E8D2A6;border-left:4px solid var(--ochre);border-radius:10px;padding:13px 16px;font-size:13px;color:#5C4318;margin:18px 0 4px}
+.banner b{color:#6E4A12}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+.m{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.m .v{font-family:'Fraunces',serif;font-size:30px;font-weight:500;letter-spacing:-.01em}
+.m .k{font-size:11.5px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.m .s{font-size:11px;color:var(--ink3);margin-top:2px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line2);margin:30px 0 22px;flex-wrap:wrap}
+.tab{padding:9px 16px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink3);border:none;background:none;border-bottom:2px solid transparent;font-family:inherit}
+.tab:hover{color:var(--ink2)}.tab.active{color:var(--teal-d);border-bottom-color:var(--teal-d)}
+.panel{display:none;animation:fade .35s ease}.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h3.st{font-family:'Fraunces',serif;font-size:21px;font-weight:500;margin:4px 0 12px}
+h4.st2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:700;margin:22px 0 10px}
+p.body{color:var(--ink2);margin-bottom:12px;max-width:790px}
+.callout{background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.callout.warn{background:#FBEEE6;border-color:#E6C6B4}
+.callout.ok{background:#EEF4EC;border-color:#CADBC6}
+.bigstat{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 4px}
+.bigstat .bs{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.bigstat .bs .n{font-family:'Fraunces',serif;font-size:28px;font-weight:500}
+.bigstat .bs.alert .n{color:var(--red)}
+.bigstat .bs .t{font-size:12px;color:var(--ink2);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 10px;border-bottom:1.5px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);font-weight:700}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.core td{background:rgba(44,110,128,.09)}
+.rank{color:var(--ink3);font-weight:600;font-variant-numeric:tabular-nums}
+.nombre{max-width:430px;line-height:1.35}.yr{color:var(--ink2);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.chartbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.chart-h{height:320px;position:relative}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.calcrow{display:grid;grid-template-columns:28px 1fr 86px;gap:11px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.calcrow .nm{line-height:1.3;font-size:12.5px}
+.calcrow .yrtag{font-size:10.5px;color:var(--ink3)}
+.citein{width:100%;padding:7px 8px;font-size:14px;border:1px solid var(--line2);border-radius:8px;background:var(--paper2);color:var(--ink);font-family:inherit;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
+.citein:focus{outline:none;border-color:var(--teal);background:#fff}
+.calc-head{display:grid;grid-template-columns:28px 1fr 86px;gap:11px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);font-weight:700;padding-bottom:8px;border-bottom:1.5px solid var(--line2)}
+.calc-head span:last-child{text-align:center}
+.tpill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:10px;background:rgba(44,110,128,.12);color:var(--teal-d);margin-left:6px;vertical-align:middle}
+.hbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+.actbtn{padding:7px 15px;font-size:12.5px;border:1px solid var(--line2);border-radius:9px;cursor:pointer;background:var(--card);color:var(--ink2);font-family:inherit;font-weight:600}
+.actbtn:hover{border-color:var(--teal)}
+.actbtn.primary{background:var(--teal-d);color:#fff;border-color:var(--teal-d)}
+.hresult{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-bottom:18px}
+.hbox{flex:1;min-width:135px;background:var(--teal-d);color:#fff;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center}
+.hbox .hn{font-family:'Fraunces',serif;font-size:52px;line-height:1;color:#F3E2C9}
+.hbox .ht{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.85;margin-bottom:4px}
+.hbox.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.hbox.alt .hn{color:var(--teal-d);font-size:38px}
+.search{width:100%;padding:9px 13px;font-size:13.5px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--ink);font-family:inherit;margin-bottom:12px}
+.search:focus{outline:none;border-color:var(--teal)}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.fbtn{padding:5px 13px;font-size:12px;border:1px solid var(--line2);border-radius:20px;cursor:pointer;background:var(--card);color:var(--ink2);font-family:inherit;font-weight:600}
+.fbtn.active{background:var(--teal-d);color:#fff;border-color:var(--teal-d)}
+.tinfo{font-size:12px;color:var(--ink3);margin-bottom:8px}
+.pager{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:12.5px;color:var(--ink2)}
+.pager button{padding:5px 12px;border:1px solid var(--line2);border-radius:8px;cursor:pointer;background:var(--card);color:var(--ink2);font-family:inherit;font-weight:600}
+.pager button:hover{border-color:var(--teal)}
+.steps{counter-reset:s;list-style:none;margin:6px 0}
+.steps li{position:relative;padding:8px 0 8px 38px;border-bottom:1px solid var(--line);color:var(--ink2)}
+.steps li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:24px;height:24px;background:var(--teal-d);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.checks{list-style:none}
+.checks li{padding:7px 0 7px 26px;position:relative;color:var(--ink2);border-bottom:1px solid var(--line)}
+.checks li:before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}
+.warn-li li:before{content:'!';color:var(--ochre)}
+.refs{font-size:12.5px;color:var(--ink2);background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.refs p{margin-bottom:6px}
+.footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink3)}
+@media(max-width:720px){.hero,.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}h1{font-size:30px}}
+</style>
+</head><body><div class="wrap">
+
+<div class="eyebrow">GrupLAC · GI DICART · Facultad de Diseño y Bellas Artes</div>
+<h1 class="serif">Cálculo de índice h</h1>
+<p class="sub">Tablero construido únicamente con el archivo <b class="mFile"></b> (<span class="mTotal"></span> productos). El índice h se calcula con las <b>citas</b> de cada obra del núcleo citable; las columnas de citas del archivo se cargan automáticamente y puedes ajustarlas.</p>
+<div class="scope">● <span class="mTotal"></span> productos · <span class="mNuc"></span> obras citables · <span class="mYmin"></span>–<span class="mYmax"></span></div>
+
+<div class="hero">
+  <div class="icard pending"><span class="tag tag-pend">Calculadora en vivo</span>
+    <div class="lbl">Índice h de Hirsch</div><div class="big" id="heroH" style="color:var(--ink3)">0</div>
+    <div class="note">Si tu archivo trae citas (Scopus/Dimensions), se cargan aquí. Si no, ingrésalas en la pestaña <b>«Calculadora índice h»</b>. Fuentes: Scopus, WoS o Google Scholar.</div></div>
+  <div class="icard ipp"><span class="tag tag-ok">Producción del archivo</span>
+    <div class="lbl">Núcleo citable (obras únicas)</div><div class="big mNuc"></div>
+    <div class="note">Artículos, libros y capítulos arbitrados, tras consolidar duplicados. <b>Es producción, no citas.</b> El índice h depende de cuántas citas reciban estas obras.</div></div>
+</div>
+
+<div class="banner"><span>⚠️</span><span><b>Lectura honesta:</b> de <span class="mTotal"></span> productos, solo <b><span class="mNuc"></span> obras</b> (artículos, libros y capítulos) acumulan citas académicas. Las <b><span class="mPrensa"></span> piezas de prensa y opinión (<span class="mPrensaPct"></span>%)</b> son divulgación, no investigación arbitrada.</span></div>
+
+<div class="metrics">
+  <div class="m"><div class="k">Productos totales</div><div class="v mTotal"></div><div class="s">archivo cargado</div></div>
+  <div class="m"><div class="k">Núcleo citable</div><div class="v mNuc"></div><div class="s">art./libros/cap. únicos</div></div>
+  <div class="m"><div class="k">Arte/Diseño</div><div class="v mArte"></div><div class="s">creación reconocida</div></div>
+  <div class="m"><div class="k">Prensa y opinión</div><div class="v mPrensa"></div><div class="s"><span class="mPrensaPct"></span>% del total</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('calc',this)">Calculadora índice h</button>
+  <button class="tab" onclick="showTab('produccion',this)">Producción del archivo</button>
+  <button class="tab" onclick="showTab('metodo',this)">Qué es el índice h</button>
+  <button class="tab" onclick="showTab('programa',this)">Para el programa</button>
+</div>
+
+<div id="calc" class="panel active">
+  <h3 class="st serif">Calculadora del índice h</h3>
+  <p class="body">Escribe (o ajusta) el número de <b>citas</b> de cada obra del núcleo citable. El índice h se recalcula al instante: es el mayor número <i>h</i> tal que <i>h</i> obras tienen al menos <i>h</i> citas cada una. La prensa, la divulgación y los datos complementarios no entran al índice h.</p>
+  <div class="hbar">
+    <button class="actbtn primary" onclick="fillExample()">Ver ejemplo (citas ficticias)</button>
+    <button class="actbtn" onclick="restorePrefill()">Restaurar citas del archivo</button>
+    <button class="actbtn" onclick="clearAll()">Borrar todo</button>
+  </div>
+  <div class="hresult">
+    <div class="hbox"><div class="ht">Índice h</div><div class="hn" id="hVal">0</div></div>
+    <div class="hbox alt"><div class="ht">Citas totales</div><div class="hn" id="hTot">0</div></div>
+    <div class="hbox alt"><div class="ht">Citas máx.</div><div class="hn" id="hMax">0</div></div>
+    <div class="hbox alt"><div class="ht">i10 (≥10 citas)</div><div class="hn" id="hI10">0</div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div class="calc-head"><span>#</span><span>Obra del núcleo citable</span><span>Citas</span></div>
+      <div id="calcList"></div>
+    </div>
+    <div class="chartbox"><h4 class="st2" style="margin-top:0">Curva del índice h</h4>
+      <p class="body" style="font-size:12px;margin-bottom:8px">Obras ordenadas por citas (barras). El índice h es el punto donde la barra aún supera la línea diagonal de rango. Las barras tealadas forman el «núcleo h».</p>
+      <div class="chart-h"><canvas id="cH"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div id="produccion" class="panel">
+  <h3 class="st serif">Lo que contiene el archivo</h3>
+  <p class="body"><span class="mTotal"></span> productos entre <span class="mYmin"></span> y <span class="mYmax"></span>. La composición exige separar investigación arbitrada de divulgación.</p>
+  <div class="bigstat">
+    <div class="bs alert"><div class="n mPrensa"></div><div class="t">prensa + columnas de opinión (<span class="mPrensaPct"></span>%)</div></div>
+    <div class="bs"><div class="n mNuc"></div><div class="t">obras citables únicas (núcleo)</div></div>
+    <div class="bs"><div class="n mArte"></div><div class="t">obras de arte/diseño (creación)</div></div>
+  </div>
+  <div class="callout warn"><h4 class="st2" style="margin-top:0">El núcleo citable: <span class="mNuc"></span> obras</h4>
+    <p class="body" style="margin-bottom:0">Lo que un evaluador considera nuevo conocimiento se compone de <b class="mNucComp"></b>, que tras consolidar duplicados de título quedan en <b><span class="mNuc"></span> obras únicas</b>. A ellas se suman las <b><span class="mArte"></span> obras de arte/diseño</b> como creación. <i>Verifica los títulos con variantes de escritura antes de un reporte oficial.</i></p></div>
+
+  <div class="grid2">
+    <div class="chartbox"><h4 class="st2" style="margin-top:0">Composición de la producción</h4><div class="chart-h" style="height:300px"><canvas id="cComp"></canvas></div></div>
+    <div class="chartbox"><h4 class="st2" style="margin-top:0">Productos por año</h4><div class="chart-h" style="height:300px"><canvas id="cYear"></canvas></div></div>
+  </div>
+  <p class="body" style="font-size:12.5px;margin-top:12px">La barra clara es el total por año; la oscura, solo el núcleo citable.</p>
+
+  <h4 class="st2">Todos los productos</h4>
+  <input class="search" id="searchInput" placeholder="Buscar por nombre…" oninput="filterP()">
+  <div class="filters" id="filters">
+    <button class="fbtn active" onclick="setF('Todos',this)">Todos</button>
+    <button class="fbtn" onclick="setF('nucleo',this)">★ Núcleo citable</button>
+    <button class="fbtn" onclick="setF('Obra de arte/diseño',this)">Arte/Diseño</button>
+    <button class="fbtn" onclick="setF('prensa',this)">Prensa y opinión</button>
+    <button class="fbtn" onclick="setF('Divulgación pública',this)">Divulgación</button>
+  </div>
+  <div class="tinfo" id="tinfo"></div>
+  <table><thead><tr><th style="width:34px">#</th><th>Nombre del producto</th><th style="width:52px">Año</th><th style="width:180px">Categoría</th></tr></thead><tbody id="ptable"></tbody></table>
+  <div class="pager"><button onclick="prevP()">← Anterior</button><span id="pinfo"></span><button onclick="nextP()">Siguiente →</button></div>
+</div>
+
+<div id="metodo" class="panel">
+  <h3 class="st serif">Qué es el índice h y cómo obtenerlo</h3>
+  <p class="body">Un autor o grupo tiene índice h igual a <b>h</b> si <b>h</b> de sus trabajos han recibido al menos <b>h</b> citas cada uno. Combina <b>productividad</b> e <b>impacto</b> en un solo número. Un buen valor depende de la etapa profesional y de la disciplina: en diseño y artes las citas suelen ser más bajas que en ciencias básicas, así que conviene compararse dentro del mismo campo.</p>
+  <div class="grid2">
+    <div>
+      <h4 class="st2">Ejemplo sencillo</h4>
+      <p class="body">Obras con 9, 6, 5, 3 y 1 citas: la 1ª tiene 9 (≥1 ✓), la 2ª tiene 6 (≥2 ✓), la 3ª tiene 5 (≥3 ✓), la 4ª tiene 3 (≥4 ✗). El índice h = <b>3</b>.</p>
+      <div class="callout ok"><p class="body" style="margin-bottom:0"><b>Límite con este archivo:</b> con <span class="mNuc"></span> obras citables, el índice h <u>máximo posible</u> es <span class="mNuc"></span>, y solo si todas tuvieran ≥<span class="mNuc"></span> citas. El valor real lo determinan las citas.</p></div>
+    </div>
+    <div>
+      <h4 class="st2">Ruta para conseguir las citas reales</h4>
+      <ol class="steps">
+        <li>Busca el grupo o cada autor en Google Scholar, Scopus o Web of Science.</li>
+        <li>Localiza las obras del núcleo citable.</li>
+        <li>Anota el «Citado por N» de cada obra (regístralo en las columnas Scopus/Dimensions del Excel).</li>
+        <li>Ingresa o ajusta esos números en la calculadora.</li>
+        <li>Reporta el índice h con fuente y fecha de consulta.</li>
+      </ol>
+    </div>
+  </div>
+  <h4 class="st2">Indicadores complementarios de esta herramienta</h4>
+  <p class="body">Junto al índice h, la calculadora muestra <b>citas totales</b>, <b>citas máximas</b> e <b>índice i10</b> (obras con ≥10 citas). Útiles para matizar el índice h en grupos jóvenes o de disciplinas con poca citación.</p>
+  <h4 class="st2">Referencias</h4>
+  <div class="refs">
+    <p>Hirsch, J. E. (2005). An index to quantify an individual's scientific research output. <i>PNAS</i>, 102(46), 16569–16572.</p>
+    <p>Hicks, D. et al. (2015). The Leiden Manifesto for research metrics. <i>Nature</i>, 520, 429–431.</p>
+    <p style="margin-bottom:0">Minciencias (2025). <i>Modelo de medición de grupos de investigación del SNCTeI.</i> Bogotá.</p>
+  </div>
+</div>
+
+<div id="programa" class="panel">
+  <h3 class="st serif">Notas para el programa</h3>
+  <h4 class="st2">Qué puedes afirmar con este archivo</h4>
+  <ul class="checks">
+    <li><b><span class="mNuc"></span> obras citables únicas</b> (<span class="mNucCompShort"></span>) entre <span class="mYmin"></span> y <span class="mYmax"></span>.</li>
+    <li><b><span class="mArte"></span> obras de arte/diseño</b> como creación con valor académico.</li>
+    <li>Fuerte vinculación con el medio: <span class="mPrensa"></span> piezas de prensa y opinión (apropiación social).</li>
+    <li>El índice h se calcula de forma transparente y auditable con las citas registradas.</li>
+  </ul>
+  <h4 class="st2">Qué anticipar (preguntas probables de pares)</h4>
+  <ul class="checks warn-li">
+    <li>«¿Por qué <span class="mTotal"></span> productos pero pocos indexados?» → distingue producción de divulgación; no infles el dato.</li>
+    <li>«¿Cuál es el índice h?» → «se calcula con citas; lo consolidamos desde Scopus/Scholar con fecha de consulta».</li>
+    <li>«¿Por qué varía la producción por año?» → ten lista la explicación.</li>
+    <li>«¿Las obras de diseño cómo se evalúan?» → criterios de creación Minciencias, circulación y reconocimiento.</li>
+  </ul>
+  <div class="callout"><h4 class="st2" style="margin-top:0">Recomendación de presentación</h4>
+    <p class="body" style="margin-bottom:0">Separa dos cifras: <b>producción</b> (<span class="mNuc"></span> citables + <span class="mArte"></span> creación, evidencia de actividad) e <b>impacto</b> (índice h, que exige citas reales con fuente y fecha). Complementa el índice h con evidencia de circulación, premiación y apropiación.</p></div>
+</div>
+
+<div class="footer">Generado automáticamente a partir de «<span class="mFile"></span>» (<span class="mTotal"></span> productos · <span class="mNuc"></span> obras citables únicas) el <span class="mDate"></span>. Las citas deben provenir de Scopus/WoS/Scholar. Las «citas de ejemplo» son ficticias y solo ilustran el cálculo.</div>
+</div>
+
+<script>
+/*__DATA__*/
+// ===== Aggregation computed from ALL / NUC =====
+const PRENSA_CATS=['Prensa (periódico)','Columna de opinión'];
+function yearsList(){return [...new Set(ALL.map(o=>o.y).filter(v=>v!=null))].sort((a,b)=>a-b).map(String);}
+const YEARS=yearsList();
+const YALL=YEARS.map(y=>ALL.filter(o=>String(o.y)===y).length);
+const YNUC=YEARS.map(y=>NUC.filter(o=>String(o.y)===y).length);
+const GROUP_ORDER=['Núcleo citable (art./libros/cap.)','Obra de arte/diseño','Prensa y opinión','Divulgación pública','Datos complementarios','Trabajos dirigidos/Tutorías','Producción técnica','Otros bibliográficos','Apropiación social','Demás trabajos'];
+function groupOf(c){
+ if(['Artículo en revista especializada','Libro resultado de investigación','Capítulo de libro','Capítulo de libro (otro)'].includes(c))return 'Núcleo citable (art./libros/cap.)';
+ if(c==='Obra de arte/diseño')return 'Obra de arte/diseño';
+ if(PRENSA_CATS.includes(c))return 'Prensa y opinión';
+ if(c==='Divulgación pública')return 'Divulgación pública';
+ if(c==='Datos complementarios')return 'Datos complementarios';
+ if(c==='Trabajos dirigidos/Tutorías')return 'Trabajos dirigidos/Tutorías';
+ if(c==='Producción técnica')return 'Producción técnica';
+ if(['Revista de divulgación','Working paper','Introducción','Libro de divulgación/formación'].includes(c))return 'Otros bibliográficos';
+ if(c==='Apropiación social')return 'Apropiación social';
+ return 'Demás trabajos';
+}
+const gcount={};ALL.forEach(o=>{const g=groupOf(o.c);gcount[g]=(gcount[g]||0)+1;});
+const GROUPS=GROUP_ORDER.filter(g=>gcount[g]);const GVALS=GROUPS.map(g=>gcount[g]);
+const CATCOLOR={'Artículo en revista especializada':'#2C6E80','Libro resultado de investigación':'#1E4F5E','Capítulo de libro':'#3A8095','Capítulo de libro (otro)':'#3A8095','Obra de arte/diseño':'#7C4A63','Prensa (periódico)':'#B5713A','Columna de opinión':'#C98A52','Revista de divulgación':'#9A8456','Divulgación pública':'#4E7A4E','Datos complementarios':'#8A969A','Trabajos dirigidos/Tutorías':'#6E7A82','Producción técnica':'#A6643C','Apropiación social':'#5E8A7A','Demás trabajos':'#9AA0A2','Working paper':'#9A8456','Introducción':'#9A8456','Libro de divulgación/formación':'#9A8456','Otro':'#9AA0A2'};
+
+// ===== META =====
+function applyMeta(){
+ const total=ALL.length, nuc=NUC.length;
+ const arte=ALL.filter(o=>o.c==='Obra de arte/diseño').length;
+ const prensa=ALL.filter(o=>PRENSA_CATS.includes(o.c)).length;
+ const pct=total?Math.round(prensa/total*100):0;
+ const ymin=YEARS.length?YEARS[0]:'—', ymax=YEARS.length?YEARS[YEARS.length-1]:'—';
+ const nart=NUC.filter(o=>o.t==='Artículo').length, nlib=NUC.filter(o=>o.t==='Libro').length, ncap=NUC.filter(o=>o.t==='Capítulo').length;
+ const parts=[]; if(nart)parts.push(`${nart} artículo${nart>1?'s':''} en revista`); if(nlib)parts.push(`${nlib} libro${nlib>1?'s':''} de investigación`); if(ncap)parts.push(`${ncap} capítulo${ncap>1?'s':''} de libro`);
+ const comp=parts.length?parts.join(', '):'sin obras citables';
+ const partsShort=[]; if(nart)partsShort.push(`${nart} art.`); if(nlib)partsShort.push(`${nlib} libros`); if(ncap)partsShort.push(`${ncap} cap.`);
+ const set=(cls,val)=>document.querySelectorAll('.'+cls).forEach(e=>e.textContent=val);
+ set('mTotal',total);set('mNuc',nuc);set('mArte',arte);set('mPrensa',prensa);set('mPrensaPct',pct);
+ set('mYmin',ymin);set('mYmax',ymax);set('mNucComp',comp);set('mNucCompShort',partsShort.join(', '));
+ set('mFile',META.file);set('mDate',META.date);
+}
+
+// ===== TABS =====
+function showTab(id,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');
+ if(id==='produccion')setTimeout(()=>{drawComp();drawYear();},60);
+ if(id==='calc')setTimeout(drawH,60);}
+
+// ===== CALCULATOR =====
+let CITES=NUC.map(o=>o.cites||0);
+function hIndex(arr){const s=arr.slice().sort((a,b)=>b-a);let h=0;for(let i=0;i<s.length;i++){if(s[i]>=i+1)h=i+1;else break;}return h;}
+function buildCalc(){
+ const c=document.getElementById('calcList');
+ if(!NUC.length){c.innerHTML='<p class="body" style="padding:12px 0">El archivo no contiene obras citables (artículos, libros o capítulos), así que no hay índice h que calcular.</p>';return;}
+ c.innerHTML=NUC.map((o,i)=>`<div class="calcrow"><div class="rank">${i+1}</div>
+   <div><div class="nm">${o.n}<span class="tpill">${o.t}</span></div><div class="yrtag">${o.y||''}</div></div>
+   <div><input class="citein" type="number" min="0" step="1" value="${CITES[i]||''}" placeholder="0" oninput="onCite(${i},this.value)"></div></div>`).join('');
+}
+function onCite(i,v){CITES[i]=Math.max(0,parseInt(v)||0);recompute();}
+function recompute(){
+ const h=hIndex(CITES);const tot=CITES.reduce((a,b)=>a+b,0);const mx=CITES.length?Math.max(...CITES):0;const i10=CITES.filter(x=>x>=10).length;
+ document.getElementById('hVal').textContent=h;
+ const hh=document.getElementById('heroH');hh.textContent=h;hh.style.color=h>0?'var(--teal-d)':'var(--ink3)';
+ document.getElementById('hTot').textContent=tot;document.getElementById('hMax').textContent=mx;document.getElementById('hI10').textContent=i10;
+ drawH();
+}
+function fillExample(){CITES=NUC.map((_,i)=>Math.max(0,16-i));buildCalc();recompute();}
+function restorePrefill(){CITES=NUC.map(o=>o.cites||0);buildCalc();recompute();}
+function clearAll(){CITES=NUC.map(()=>0);buildCalc();recompute();}
+
+// ===== CHARTS =====
+let chH=null,chY=null,chC=null;
+function drawH(){
+ const ctx=document.getElementById('cH');if(!ctx)return;
+ const sorted=CITES.slice().sort((a,b)=>b-a);const h=hIndex(CITES);
+ const labels=sorted.map((_,i)=>i+1);const diag=sorted.map((_,i)=>i+1);
+ const colors=sorted.map((v,i)=>(i+1)<=h?'#2C6E80':'#D2C8B4');
+ if(chH)chH.destroy();
+ chH=new Chart(ctx,{data:{labels,datasets:[
+   {type:'bar',label:'Citas',data:sorted,backgroundColor:colors,borderRadius:4,order:2},
+   {type:'line',label:'Rango (y = x)',data:diag,borderColor:'#B5713A',borderDash:[5,4],borderWidth:2,pointRadius:0,order:1,tension:0}
+ ]},options:{responsive:true,maintainAspectRatio:false,
+   plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:14}},tooltip:{callbacks:{title:(t)=>'Obra #'+t[0].label}}},
+   scales:{x:{title:{display:true,text:'Obras ordenadas por citas',font:{size:11}},grid:{display:false},ticks:{font:{size:10}}},
+     y:{beginAtZero:true,title:{display:true,text:'Citas',font:{size:11}},grid:{color:'#E2DACB'},ticks:{font:{size:10},precision:0}}}}});
+}
+function drawYear(){
+ const ctx=document.getElementById('cYear');if(!ctx)return;if(chY)chY.destroy();
+ chY=new Chart(ctx,{type:'bar',data:{labels:YEARS,datasets:[
+   {label:'Total',data:YALL,backgroundColor:'#D2C8B4',borderRadius:4},
+   {label:'Núcleo citable',data:YNUC,backgroundColor:'#2C6E80',borderRadius:4}
+ ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:14}}},
+   scales:{y:{beginAtZero:true,grid:{color:'#E2DACB'},ticks:{precision:0,font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+}
+function drawComp(){
+ const ctx=document.getElementById('cComp');if(!ctx)return;if(chC)chC.destroy();
+ const cols=['#2C6E80','#7C4A63','#B5713A','#4E7A4E','#8A969A','#6E7A82','#A6643C','#9A8456','#5E8A7A','#9AA0A2'];
+ chC=new Chart(ctx,{type:'doughnut',data:{labels:GROUPS,datasets:[{data:GVALS,backgroundColor:cols,borderColor:'#fff',borderWidth:2}]},
+   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10.5},boxWidth:12,padding:7}}}}});
+}
+
+// ===== TABLE =====
+let filter='Todos',page=1,SIZE=25,filtered=[...ALL];
+function setF(c,btn){filter=c;page=1;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');apply();}
+function filterP(){page=1;apply();}
+function apply(){const q=document.getElementById('searchInput').value.toLowerCase();
+ filtered=ALL.filter(p=>{let cOk;
+   if(filter==='Todos')cOk=true; else if(filter==='nucleo')cOk=p.nu===1;
+   else if(filter==='prensa')cOk=PRENSA_CATS.includes(p.c); else cOk=p.c===filter;
+   const nOk=!q||p.n.toLowerCase().includes(q);return cOk&&nOk;});
+ render();}
+function render(){const tb=document.getElementById('ptable'),s=(page-1)*SIZE,sl=filtered.slice(s,s+SIZE);
+ document.getElementById('tinfo').textContent=`Mostrando ${filtered.length?s+1:0}–${Math.min(s+SIZE,filtered.length)} de ${filtered.length} productos`;
+ document.getElementById('pinfo').textContent=`Página ${page} de ${Math.ceil(filtered.length/SIZE)||1}`;
+ tb.innerHTML=sl.map((p,j)=>`<tr class="${p.nu?'core':''}"><td class="rank">${s+j+1}</td>
+   <td class="nombre">${p.nu?'★ ':''}${p.n}</td><td class="yr">${p.y||''}</td>
+   <td><span class="badge" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c}</span></td></tr>`).join('');}
+function prevP(){if(page>1){page--;render();}}
+function nextP(){if(page<Math.ceil(filtered.length/SIZE)){page++;render();}}
+
+applyMeta();buildCalc();recompute();apply();
+<\/script></body></html>
+</script>
+
+<script>
+const TIPOS=[{"v": "Producción bibliográfica - Artículo - Publicado en revista especializada", "n": 1}, {"v": "Producción bibliográfica - Libro - Capítulo de libro", "n": 1}, {"v": "Producción bibliográfica - Libro - Libro resultado de investigación", "n": 1}, {"v": "Producción bibliográfica - Libro - Otro capítulo de libro publicado", "n": 1}, {"v": "Apropiación social del conocimiento - Proceso de Apropiación Social del Conocimiento para el fortalecimiento o solución de asuntos de interés social", "n": 0}, {"v": "Datos complementarios - Jurado/Comisiones evaluadoras de trabajo de grado - Maestría", "n": 0}, {"v": "Datos complementarios - Jurado/Comisiones evaluadoras de trabajo de grado - Pregrado", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Acreditación de programas", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Concurso docente", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Otra", "n": 0}, {"v": "Demás trabajos - Demás trabajos", "n": 0}, {"v": "Divulgación pública de la ciencia - Desarrollos web: Páginas web-blogs, micrositios, aplicativos móviles + estrategia de Redes Sociales", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Audiovisuales - Cápsulas de video", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Audiovisuales - Video", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Recursos gráficos digitales - Videografías", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Sonoro - Podcast", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Sonoro - Programa radial", "n": 0}, {"v": "Divulgación pública de la ciencia - Producción de estrategias y contenidos transmedia", "n": 0}, {"v": "Divulgación pública de la ciencia - Publicaciones editoriales no especializadas: cartillas, manual no especializado, periódicos, revistas, boletín, etc", "n": 0}, {"v": "Producción bibliográfica - Documento de trabajo (Working Paper)", "n": 0}, {"v": "Producción bibliográfica - Libro - Libros de divulgación y/o Compilación de divulgación", "n": 0}, {"v": "Producción bibliográfica - Libro - Libros de formación", "n": 0}, {"v": "Producción bibliográfica - Otra producción bibliográfica - Introducción", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Columna de opinión", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Periódico de noticias", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Revista de divulgación", "n": 0}, {"v": "Producción en artes, arquitectura y diseño - Obra o producto", "n": 0}, {"v": "Producción técnica - Consultoría Científico Tecnológica e Informe Técnico - Informe técnico", "n": 0}, {"v": "Producción técnica - Contenido Virtual - Portal", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Especialización", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Extensión extracurricular", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Otro", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Perfeccionamiento", "n": 0}, {"v": "Producción técnica - Editoración o revisión - Compilación", "n": 0}, {"v": "Producción técnica - Impresa - Boletín", "n": 0}, {"v": "Producción técnica - Informes de investigación", "n": 0}, {"v": "Producción técnica - Innovaciones generadas de producción empresarial - Organizacional", "n": 0}, {"v": "Producción técnica - Productos tecnológicos - Base de datos de referencia para investigacion", "n": 0}, {"v": "Producción técnica - Prototipo - Industrial", "n": 0}, {"v": "Producción técnica - Prototipo - Servicios", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajo de grado de maestría o especialidad clínica", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajos de grado de pregrado", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajos dirigidos/Tutorías de otro tipo", "n": 0}];
+let WB=null, LASTHTML='', LASTNAME='';
+
+// ---------- classification (GrupLAC / Minciencias vocabulary) ----------
+function classify(tipo){
+  const t=(tipo||'').toString();
+  if(t.includes('Artículo - Publicado en revista especializada')) return {c:'Artículo en revista especializada',nu:1,t:'Artículo'};
+  if(t.includes('Libro - Libro resultado de investigación')) return {c:'Libro resultado de investigación',nu:1,t:'Libro'};
+  if(t.includes('Libro - Capítulo de libro')) return {c:'Capítulo de libro',nu:1,t:'Capítulo'};
+  if(t.includes('Libro - Otro capítulo de libro publicado')) return {c:'Capítulo de libro (otro)',nu:1,t:'Capítulo'};
+  if(t.includes('Producción en artes')) return {c:'Obra de arte/diseño',nu:0,t:''};
+  if(t.includes('Periódico de noticias')) return {c:'Prensa (periódico)',nu:0,t:''};
+  if(t.includes('Columna de opinión')) return {c:'Columna de opinión',nu:0,t:''};
+  if(t.includes('Revista de divulgación')) return {c:'Revista de divulgación',nu:0,t:''};
+  if(t.includes('Working Paper')) return {c:'Working paper',nu:0,t:''};
+  if(t.includes('Introducción')) return {c:'Introducción',nu:0,t:''};
+  if(t.includes('Libros de divulgación')||t.includes('Libros de formación')) return {c:'Libro de divulgación/formación',nu:0,t:''};
+  if(t.includes('Divulgación pública')) return {c:'Divulgación pública',nu:0,t:''};
+  if(t.includes('Datos complementarios')) return {c:'Datos complementarios',nu:0,t:''};
+  if(t.includes('Trabajos dirigidos')) return {c:'Trabajos dirigidos/Tutorías',nu:0,t:''};
+  if(t.includes('Producción técnica')) return {c:'Producción técnica',nu:0,t:''};
+  if(t.includes('Apropiación social')) return {c:'Apropiación social',nu:0,t:''};
+  if(t.includes('Demás trabajos')) return {c:'Demás trabajos',nu:0,t:''};
+  return {c:'Otro',nu:0,t:''};
+}
+function norm(s){return (s||'').toString().toLowerCase().replace(/\s+/g,' ').trim();}
+function colIndex(headers, keys){
+  const H=headers.map(h=>norm(h).normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+  for(let i=0;i<H.length;i++){ if(keys.some(k=>H[i].includes(k))) return i; }
+  return -1;
+}
+function num(x){const v=parseFloat(x);return isNaN(v)?0:v;}
+
+// ---------- read a sheet into ALL + NUC ----------
+function processSheet(ws){
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  if(!rows.length) throw 'La hoja está vacía.';
+  const headers=rows[0];
+  const ci={
+    tipo:colIndex(headers,['tipo']),
+    nombre:colIndex(headers,['nombre','titulo','producto']),
+    anio:colIndex(headers,['ano','anio','year']),
+    scopus:colIndex(headers,['scopus']),
+    dim:colIndex(headers,['dimen','dimec']),
+  };
+  const missing=[];
+  if(ci.tipo<0)missing.push('Tipo'); if(ci.nombre<0)missing.push('Nombre'); if(ci.anio<0)missing.push('Año');
+  if(missing.length) throw 'Faltan columnas obligatorias: '+missing.join(', ')+'. Descarga la plantilla y úsala como base.';
+
+  const ALL=[]; let skipped=0, otros=0;
+  const nucMap=new Map();
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r];
+    const nombre=(row[ci.nombre]||'').toString().replace(/\u00bf/g,'').replace(/\s+/g,' ').trim();
+    if(!nombre){skipped++;continue;}
+    let y=row[ci.anio]; y=(y===''||y==null)?null:parseInt(y);
+    if(y && (y<1900||y>2100)) y=null;
+    const k=classify(row[ci.tipo]);
+    if(k.c==='Otro') otros++;
+    ALL.push({n:nombre,y:y,c:k.c,nu:k.nu});
+    if(k.nu){
+      const sc=ci.scopus>=0?num(row[ci.scopus]):0;
+      const di=ci.dim>=0?num(row[ci.dim]):0;
+      const cites=Math.max(sc,di);
+      const key=norm(nombre);
+      if(!nucMap.has(key)) nucMap.set(key,{n:nombre,y:y,t:k.t,cites:cites});
+      else { const ex=nucMap.get(key); ex.cites=Math.max(ex.cites,cites); if(!ex.y&&y)ex.y=y; }
+    }
+  }
+  const NUC=[...nucMap.values()];
+  return {ALL,NUC,skipped,otros};
+}
+
+// ---------- build the report HTML from template ----------
+function buildReport(ALL,NUC,fileName){
+  const tpl=document.getElementById('reportTpl').textContent.split('<\\/script>').join('</scr'+'ipt>');
+  const safe=o=>JSON.stringify(o).replace(/</g,'\\u003c');
+  const today=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const data='const ALL='+safe(ALL)+';\nconst NUC='+safe(NUC)+';\nconst META='+safe({file:fileName,date:today})+';';
+  return tpl.replace('/*__DATA__*/', ()=>data);
+}
+
+// ---------- orchestration ----------
+function show(msgs){document.getElementById('status').innerHTML=msgs.map(m=>`<div class="msg ${m.t}">${m.h}</div>`).join('');}
+function regen(){
+  if(!WB) return;
+  try{
+    const name=document.getElementById('sheet').value || WB.SheetNames[0];
+    const res=processSheet(WB.Sheets[name]);
+    const msgs=[{t:'ok',h:`<span>✓ <b>${res.ALL.length}</b> productos leídos · <b>${res.NUC.length}</b> obras citables únicas detectadas.</span>`}];
+    if(res.otros) msgs.push({t:'warn',h:`<span><b>${res.otros}</b> producto(s) con un «Tipo» no reconocido quedaron como «Otro». Revisa que usen el vocabulario de la plantilla.</span>`});
+    if(res.skipped) msgs.push({t:'warn',h:`<span><b>${res.skipped}</b> fila(s) sin nombre se omitieron.</span>`});
+    if(!res.NUC.length) msgs.push({t:'warn',h:`<span>No se detectaron obras citables (artículos, libros o capítulos): el índice h será 0 hasta que existan.</span>`});
+    show(msgs);
+    LASTHTML=buildReport(res.ALL,res.NUC,LASTNAME);
+    document.getElementById('preview').srcdoc=LASTHTML;
+    document.getElementById('previewbox').style.display='block';
+    document.getElementById('resultbar').style.display='flex';
+    const cited=res.NUC.filter(o=>o.cites>0).length;
+    document.getElementById('phmeta').textContent=cited?`${cited} obra(s) con citas precargadas`:'sin citas en el archivo';
+    document.getElementById('genmeta').textContent='Informe listo · '+LASTNAME;
+  }catch(e){
+    show([{t:'err',h:'<span>⚠️ '+(typeof e==='string'?e:'No se pudo procesar el archivo.')+'</span>'}]);
+    document.getElementById('previewbox').style.display='none';
+    document.getElementById('resultbar').style.display='none';
+  }
+}
+function handleFile(f){
+  if(!f) return;
+  LASTNAME=f.name;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      WB=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const sel=document.getElementById('sheet'); sel.innerHTML='';
+      WB.SheetNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+      // smart default: prefer a sheet named like 2020-2024 / PRODUCTOS, else first
+      const pref=WB.SheetNames.find(n=>/\d{4}.?\d{4}/.test(n))||WB.SheetNames.find(n=>/producto/i.test(n))||WB.SheetNames[0];
+      sel.value=pref;
+      document.getElementById('sheetsel').style.display=WB.SheetNames.length>1?'block':'none';
+      regen();
+    }catch(err){show([{t:'err',h:'<span>⚠️ El archivo no es un Excel válido.</span>'}]);}
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+// ---------- template Excel download ----------
+function downloadTemplate(){
+  const head=['Tipo','Nombre','Año','Mes','Scopus','Dimensions','Altmetric'];
+  const ej=[
+    ['Producción bibliográfica - Artículo - Publicado en revista especializada','Título del artículo de investigación',2023,'Marzo',0,0,0],
+    ['Producción bibliográfica - Libro - Capítulo de libro','Título del capítulo de libro',2022,'Octubre',0,0,0],
+    ['Producción en artes, arquitectura y diseño - Obra o producto','Nombre de la obra de arte/diseño',2021,'Mayo','','',''],
+    ['Producción bibliográfica - Otro artículo publicado - Columna de opinión','Título de la columna de opinión',2020,'Julio','','','']
+  ];
+  const wsP=XLSX.utils.aoa_to_sheet([head,...ej]);
+  wsP['!cols']=[{wch:58},{wch:46},{wch:7},{wch:12},{wch:9},{wch:11},{wch:10}];
+
+  const instr=[
+    ['INSTRUCCIONES — Plantilla para el informe de índice h'],
+    [''],
+    ['1. Llena la hoja PRODUCTOS. No cambies los nombres de las columnas de la fila 1.'],
+    ['2. Tipo: copia un valor EXACTO de la hoja "Tipos_validos". De ahí depende la clasificación.'],
+    ['3. Nombre: título del producto. Año: número de 4 dígitos. Mes: opcional.'],
+    ['4. Scopus / Dimensions: número de citas (opcional). Si lo llenas, se precarga en la calculadora.'],
+    ['5. Altmetric: atención mediática (opcional, NO se usa para el índice h).'],
+    ['6. Borra las filas de ejemplo antes de generar tu informe.'],
+    [''],
+    ['Cuentan para el índice h (núcleo citable): Artículo en revista especializada,'],
+    ['Libro resultado de investigación, Capítulo de libro y Otro capítulo de libro publicado.'],
+    ['Las obras de arte/diseño se reportan como creación, aparte del índice h.']
+  ];
+  const wsI=XLSX.utils.aoa_to_sheet(instr); wsI['!cols']=[{wch:95}];
+
+  const tv=[['Tipo (copiar exacto)','¿Cuenta para índice h?']];
+  TIPOS.forEach(t=>tv.push([t.v, t.n?'Sí (núcleo citable)':'No']));
+  const wsT=XLSX.utils.aoa_to_sheet(tv); wsT['!cols']=[{wch:90},{wch:22}];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,wsP,'PRODUCTOS');
+  XLSX.utils.book_append_sheet(wb,wsT,'Tipos_validos');
+  XLSX.utils.book_append_sheet(wb,wsI,'Instrucciones');
+  XLSX.writeFile(wb,'plantilla_indice_h.xlsx');
+}
+
+// ---------- downloads ----------
+function downloadReport(){
+  if(!LASTHTML)return;
+  const blob=new Blob([LASTHTML],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='informe_indice_h.html';a.click();URL.revokeObjectURL(a.href);
+}
+function openReport(){
+  if(!LASTHTML)return;
+  const blob=new Blob([LASTHTML],{type:'text/html;charset=utf-8'});
+  window.open(URL.createObjectURL(blob),'_blank');
+}
+
+// ---------- wiring ----------
+const drop=document.getElementById('drop'), file=document.getElementById('file');
+drop.onclick=()=>file.click();
+file.onchange=e=>handleFile(e.target.files[0]);
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handleFile(e.dataTransfer.files[0]);};
+</script>
+</body></html>
