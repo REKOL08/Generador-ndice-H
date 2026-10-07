@@ -450,7 +450,7 @@ function drawSteps(){
  const tb=document.getElementById('hSteps'),cc=document.getElementById('hConc');if(!tb)return;
  if(!NUC.length){tb.innerHTML='';cc.textContent='';return;}
  const ord=NUC.map((o,i)=>({n:o.n,c:CITES[i]||0})).sort((a,b)=>b.c-a.c);const h=hIndex(CITES);
- const show=Math.min(ord.length,h+2);let rows='';
+ const show=Math.min(ord.length,h+1);let rows='';
  for(let i=0;i<show;i++){const ok=ord[i].c>=i+1;
   rows+='<tr class="'+(ok?'pass':'fail')+'"><td>'+(i+1)+'</td><td class="on" title="'+ord[i].n+'">'+ord[i].n+'</td><td>'+ord[i].c+'</td><td class="ver">'+(ok?'✓ '+ord[i].c+' ≥ '+(i+1):'✗ '+ord[i].c+' &lt; '+(i+1)+' → aquí paramos')+'</td></tr>';}
  tb.innerHTML=rows+(ord.length>show?'<tr><td colspan="4" style="color:var(--ink3)">… y '+(ord.length-show)+' obra(s) más con menos citas (ya no pueden aumentar el índice h).</td></tr>':'');
