@@ -50,35 +50,41 @@ details li{margin-bottom:5px}
 code{background:var(--paper2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
 .footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink3)}
 @media(max-width:720px){.steps-grid{grid-template-columns:1fr}h1{font-size:29px}iframe{height:560px}}
+.drop.big{padding:44px 18px;font-size:16px}
+.kpis{display:none;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .kv{font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:var(--teal-d)}
+.kpi .kk{font-size:11.5px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.colgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.colgrid label{font-size:12px;font-weight:600;color:var(--ink2);display:block}
+.colgrid select{margin-top:5px;font-weight:400}
+table.at{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+table.at th{text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line2);font-size:11px;text-transform:uppercase;color:var(--ink2)}
+table.at td{padding:7px 10px;border-bottom:1px solid var(--line)}
+.rank{color:var(--ink3)}
+.linkbtn{background:none;border:none;color:var(--teal-d);text-decoration:underline;cursor:pointer;font:inherit;font-size:12px}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
 </style></head><body><div class="wrap">
 
 <div class="eyebrow">Bibliotecas Areandina </div>
 <h1 class="serif">Generador de informe de índice h</h1>
-<p class="sub">Carga la base de datos de productos (Excel exportado de GrupLAC) y obtén automáticamente el informe de índice h con la plantilla institucional. Descarga primero la plantilla para llenar el Excel sin errores.</p>
+<p class="sub">Sube cualquier Excel o CSV con tus obras (GrupLAC, Scopus, Web of Science, Google Scholar, Dimensions o una tabla propia). El sistema detecta solo las columnas y genera el análisis al instante, sin plantilla.</p>
 
-<div class="steps-grid">
-  <div class="scard"><div class="snum">1</div>
-    <h3 class="serif">Descarga la plantilla</h3>
-    <p>Un Excel con las columnas correctas, ejemplos y la lista de tipos válidos. Llénalo con tus productos para evitar errores al generar.</p>
-    <button class="btn ghost" onclick="downloadTemplate()">⬇ Descargar plantilla Excel</button>
+<div class="scard" style="margin-top:26px">
+  <div class="drop big" id="drop">
+    <div><b>Haz clic o arrastra</b> tus archivos aquí (.xlsx, .xls, .csv — puedes subir varios)</div>
+    <div class="small">Necesita al menos una columna con el título de cada obra. Año, citas, tipo y autor se detectan si existen. Todo se procesa en tu navegador.</div>
   </div>
-  <div class="scard"><div class="snum">2</div>
-    <h3 class="serif">Carga tu Excel</h3>
-    <p>Sube el archivo lleno. Se procesa en tu navegador: nada se envía a ningún servidor.</p>
-    <div class="drop" id="drop">
-      <div><b>Haz clic o arrastra</b> tu archivo .xlsx aquí</div>
-      <div class="small">Columnas esperadas: Tipo · Nombre · Año · Mes · Scopus · Dimensions · Altmetric</div>
-    </div>
-    <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
-    <div class="sheetsel" id="sheetsel"><label>Hoja a usar</label><select id="sheet" onchange="regen()"></select></div>
-  </div>
+  <input type="file" id="file" accept=".xlsx,.xlsm,.xls,.ods,.csv,.tsv,.txt" multiple style="display:none">
+  <div class="sheetsel" id="sheetsel"><label>Hoja a usar (se elige la más completa automáticamente)</label><select id="sheet"></select></div>
 </div>
 
 <div class="status" id="status"></div>
+<div class="kpis" id="kpis"></div>
 
 <div class="resultbar" id="resultbar" style="display:none">
-  <button class="btn" onclick="downloadReport()">⬇ Descargar informe HTML</button>
-  <button class="btn ghost" onclick="openReport()">↗ Abrir en pestaña nueva</button>
+  <button class="btn" onclick="HI.downloadReport()">⬇ Descargar informe HTML</button>
+  <button class="btn ghost" onclick="HI.openReport()">↗ Abrir en pestaña nueva</button>
   <span class="note" id="genmeta"></span>
 </div>
 
@@ -87,18 +93,29 @@ code{background:var(--paper2);border:1px solid var(--line);border-radius:5px;pad
   <iframe id="preview" title="Vista previa"></iframe>
 </div>
 
-<details>
-  <summary>¿Cómo se clasifican los productos y qué cuenta para el índice h?</summary>
-  <ul>
-    <li><b>Núcleo citable</b> (entra al índice h): artículos en revista especializada, libros resultado de investigación y capítulos de libro.</li>
-    <li><b>No entran al índice h</b>: prensa y columnas de opinión, divulgación, datos complementarios, tutorías, producción técnica y obras de arte/diseño (estas últimas se reportan aparte como creación).</li>
-    <li>La clasificación se hace por el texto de la columna <code>Tipo</code> (formato GrupLAC/Minciencias). Los tipos no reconocidos se marcan como «Otro» y se reportan en el aviso.</li>
-    <li>Si las columnas <code>Scopus</code> o <code>Dimensions</code> traen citas, se cargan automáticamente en la calculadora (se toma el mayor de las dos por obra). Siempre puedes ajustarlas en el informe.</li>
-    <li>Los títulos duplicados del núcleo se consolidan en una sola obra.</li>
-  </ul>
+<details id="colpanel" style="display:none">
+  <summary>Columnas detectadas (corrígelas si hace falta)</summary>
+  <div class="colgrid" id="colbody"></div>
 </details>
 
-<div class="footer">Procesamiento 100% en el navegador (SheetJS + Chart.js). Pensado para publicarse en GitHub Pages. El informe generado es un archivo HTML autónomo que puedes versionar o compartir.</div>
+<details id="authpanel" style="display:none">
+  <summary>Índice h por autor <span class="note" id="authcount"></span></summary>
+  <table class="at"><thead><tr><th>#</th><th>Autor</th><th>Obras</th><th>Citas</th><th>h</th><th>g</th><th>i10</th></tr></thead><tbody id="authbody"></tbody></table>
+  <p class="note"><button class="linkbtn" onclick="HI.downloadAuthors()">Descargar tabla completa (CSV)</button> · Se muestran los 30 primeros.</p>
+</details>
+
+<details>
+  <summary>¿Cómo se leen los archivos y qué cuenta para el índice h?</summary>
+  <ul>
+    <li><b>Detección automática:</b> busca la fila de encabezados (aunque no sea la primera), elige la hoja más completa y reconoce columnas como <code>Title/Título/Nombre</code>, <code>Year/Año</code>, <code>Cited by/Times cited/Citas/Scopus</code>, <code>Type/Tipo</code> y <code>Authors/Autores</code>. Si no hay encabezados útiles, las deduce por el contenido.</li>
+    <li><b>Citas:</b> si hay varias columnas de citas (p. ej. Scopus y Dimensions) se toma el mayor valor por obra. Sin citas, el informe se genera y puedes ingresarlas en la calculadora.</li>
+    <li><b>Tipo GrupLAC:</b> solo artículos en revista, libros de investigación y capítulos entran al índice h; prensa, divulgación, tutorías y producción técnica no. En otras fuentes, todas las obras cuentan salvo tipos claramente no citables.</li>
+    <li>Los títulos duplicados se consolidan en una sola obra. Con varios archivos, se combinan sin repetir.</li>
+  </ul>
+  <p class="note" style="margin-top:10px">Opcional: <button class="linkbtn" onclick="HI.downloadTemplate()">descargar una plantilla de ejemplo</button> (ya no es necesaria).</p>
+</details>
+
+<div class="footer">Procesamiento 100% en el navegador (SheetJS + Chart.js). El informe generado es un archivo HTML autónomo que puedes versionar o compartir.</div>
 </div>
 
 <script type="text/template" id="reportTpl">
@@ -468,191 +485,17 @@ applyMeta();buildCalc();recompute();apply();
 <\/script></body></html>
 </script>
 
-<script>
-const TIPOS=[{"v": "Producción bibliográfica - Artículo - Publicado en revista especializada", "n": 1}, {"v": "Producción bibliográfica - Libro - Capítulo de libro", "n": 1}, {"v": "Producción bibliográfica - Libro - Libro resultado de investigación", "n": 1}, {"v": "Producción bibliográfica - Libro - Otro capítulo de libro publicado", "n": 1}, {"v": "Apropiación social del conocimiento - Proceso de Apropiación Social del Conocimiento para el fortalecimiento o solución de asuntos de interés social", "n": 0}, {"v": "Datos complementarios - Jurado/Comisiones evaluadoras de trabajo de grado - Maestría", "n": 0}, {"v": "Datos complementarios - Jurado/Comisiones evaluadoras de trabajo de grado - Pregrado", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Acreditación de programas", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Concurso docente", "n": 0}, {"v": "Datos complementarios - Participación en comités de evaluación - Otra", "n": 0}, {"v": "Demás trabajos - Demás trabajos", "n": 0}, {"v": "Divulgación pública de la ciencia - Desarrollos web: Páginas web-blogs, micrositios, aplicativos móviles + estrategia de Redes Sociales", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Audiovisuales - Cápsulas de video", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Audiovisuales - Video", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Recursos gráficos digitales - Videografías", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Sonoro - Podcast", "n": 0}, {"v": "Divulgación pública de la ciencia - Producciones de contenido digital - Sonoro - Programa radial", "n": 0}, {"v": "Divulgación pública de la ciencia - Producción de estrategias y contenidos transmedia", "n": 0}, {"v": "Divulgación pública de la ciencia - Publicaciones editoriales no especializadas: cartillas, manual no especializado, periódicos, revistas, boletín, etc", "n": 0}, {"v": "Producción bibliográfica - Documento de trabajo (Working Paper)", "n": 0}, {"v": "Producción bibliográfica - Libro - Libros de divulgación y/o Compilación de divulgación", "n": 0}, {"v": "Producción bibliográfica - Libro - Libros de formación", "n": 0}, {"v": "Producción bibliográfica - Otra producción bibliográfica - Introducción", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Columna de opinión", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Periódico de noticias", "n": 0}, {"v": "Producción bibliográfica - Otro artículo publicado - Revista de divulgación", "n": 0}, {"v": "Producción en artes, arquitectura y diseño - Obra o producto", "n": 0}, {"v": "Producción técnica - Consultoría Científico Tecnológica e Informe Técnico - Informe técnico", "n": 0}, {"v": "Producción técnica - Contenido Virtual - Portal", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Especialización", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Extensión extracurricular", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Otro", "n": 0}, {"v": "Producción técnica - Cursos de corta duración dictados - Perfeccionamiento", "n": 0}, {"v": "Producción técnica - Editoración o revisión - Compilación", "n": 0}, {"v": "Producción técnica - Impresa - Boletín", "n": 0}, {"v": "Producción técnica - Informes de investigación", "n": 0}, {"v": "Producción técnica - Innovaciones generadas de producción empresarial - Organizacional", "n": 0}, {"v": "Producción técnica - Productos tecnológicos - Base de datos de referencia para investigacion", "n": 0}, {"v": "Producción técnica - Prototipo - Industrial", "n": 0}, {"v": "Producción técnica - Prototipo - Servicios", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajo de grado de maestría o especialidad clínica", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajos de grado de pregrado", "n": 0}, {"v": "Trabajos dirigidos/Tutorías - Trabajos dirigidos/Tutorías de otro tipo", "n": 0}];
-let WB=null, LASTHTML='', LASTNAME='';
 
-// ---------- classification (GrupLAC / Minciencias vocabulary) ----------
-function classify(tipo){
-  const t=(tipo||'').toString();
-  if(t.includes('Artículo - Publicado en revista especializada')) return {c:'Artículo en revista especializada',nu:1,t:'Artículo'};
-  if(t.includes('Libro - Libro resultado de investigación')) return {c:'Libro resultado de investigación',nu:1,t:'Libro'};
-  if(t.includes('Libro - Capítulo de libro')) return {c:'Capítulo de libro',nu:1,t:'Capítulo'};
-  if(t.includes('Libro - Otro capítulo de libro publicado')) return {c:'Capítulo de libro (otro)',nu:1,t:'Capítulo'};
-  if(t.includes('Producción en artes')) return {c:'Obra de arte/diseño',nu:0,t:''};
-  if(t.includes('Periódico de noticias')) return {c:'Prensa (periódico)',nu:0,t:''};
-  if(t.includes('Columna de opinión')) return {c:'Columna de opinión',nu:0,t:''};
-  if(t.includes('Revista de divulgación')) return {c:'Revista de divulgación',nu:0,t:''};
-  if(t.includes('Working Paper')) return {c:'Working paper',nu:0,t:''};
-  if(t.includes('Introducción')) return {c:'Introducción',nu:0,t:''};
-  if(t.includes('Libros de divulgación')||t.includes('Libros de formación')) return {c:'Libro de divulgación/formación',nu:0,t:''};
-  if(t.includes('Divulgación pública')) return {c:'Divulgación pública',nu:0,t:''};
-  if(t.includes('Datos complementarios')) return {c:'Datos complementarios',nu:0,t:''};
-  if(t.includes('Trabajos dirigidos')) return {c:'Trabajos dirigidos/Tutorías',nu:0,t:''};
-  if(t.includes('Producción técnica')) return {c:'Producción técnica',nu:0,t:''};
-  if(t.includes('Apropiación social')) return {c:'Apropiación social',nu:0,t:''};
-  if(t.includes('Demás trabajos')) return {c:'Demás trabajos',nu:0,t:''};
-  return {c:'Otro',nu:0,t:''};
-}
-function norm(s){return (s||'').toString().toLowerCase().replace(/\s+/g,' ').trim();}
-function colIndex(headers, keys){
-  const H=headers.map(h=>norm(h).normalize('NFD').replace(/[\u0300-\u036f]/g,''));
-  for(let i=0;i<H.length;i++){ if(keys.some(k=>H[i].includes(k))) return i; }
-  return -1;
-}
-function num(x){const v=parseFloat(x);return isNaN(v)?0:v;}
-
-// ---------- read a sheet into ALL + NUC ----------
-function processSheet(ws){
-  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-  if(!rows.length) throw 'La hoja está vacía.';
-  const headers=rows[0];
-  const ci={
-    tipo:colIndex(headers,['tipo']),
-    nombre:colIndex(headers,['nombre','titulo','producto']),
-    anio:colIndex(headers,['ano','anio','year']),
-    scopus:colIndex(headers,['scopus']),
-    dim:colIndex(headers,['dimen','dimec']),
-  };
-  const missing=[];
-  if(ci.tipo<0)missing.push('Tipo'); if(ci.nombre<0)missing.push('Nombre'); if(ci.anio<0)missing.push('Año');
-  if(missing.length) throw 'Faltan columnas obligatorias: '+missing.join(', ')+'. Descarga la plantilla y úsala como base.';
-
-  const ALL=[]; let skipped=0, otros=0;
-  const nucMap=new Map();
-  for(let r=1;r<rows.length;r++){
-    const row=rows[r];
-    const nombre=(row[ci.nombre]||'').toString().replace(/\u00bf/g,'').replace(/\s+/g,' ').trim();
-    if(!nombre){skipped++;continue;}
-    let y=row[ci.anio]; y=(y===''||y==null)?null:parseInt(y);
-    if(y && (y<1900||y>2100)) y=null;
-    const k=classify(row[ci.tipo]);
-    if(k.c==='Otro') otros++;
-    ALL.push({n:nombre,y:y,c:k.c,nu:k.nu});
-    if(k.nu){
-      const sc=ci.scopus>=0?num(row[ci.scopus]):0;
-      const di=ci.dim>=0?num(row[ci.dim]):0;
-      const cites=Math.max(sc,di);
-      const key=norm(nombre);
-      if(!nucMap.has(key)) nucMap.set(key,{n:nombre,y:y,t:k.t,cites:cites});
-      else { const ex=nucMap.get(key); ex.cites=Math.max(ex.cites,cites); if(!ex.y&&y)ex.y=y; }
-    }
-  }
-  const NUC=[...nucMap.values()];
-  return {ALL,NUC,skipped,otros};
-}
-
-// ---------- build the report HTML from template ----------
-function buildReport(ALL,NUC,fileName){
-  const tpl=document.getElementById('reportTpl').textContent.split('<\\/script>').join('</scr'+'ipt>');
-  const safe=o=>JSON.stringify(o).replace(/</g,'\\u003c');
-  const today=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
-  const data='const ALL='+safe(ALL)+';\nconst NUC='+safe(NUC)+';\nconst META='+safe({file:fileName,date:today})+';';
-  return tpl.replace('/*__DATA__*/', ()=>data);
-}
-
-// ---------- orchestration ----------
-function show(msgs){document.getElementById('status').innerHTML=msgs.map(m=>`<div class="msg ${m.t}">${m.h}</div>`).join('');}
-function regen(){
-  if(!WB) return;
-  try{
-    const name=document.getElementById('sheet').value || WB.SheetNames[0];
-    const res=processSheet(WB.Sheets[name]);
-    const msgs=[{t:'ok',h:`<span>✓ <b>${res.ALL.length}</b> productos leídos · <b>${res.NUC.length}</b> obras citables únicas detectadas.</span>`}];
-    if(res.otros) msgs.push({t:'warn',h:`<span><b>${res.otros}</b> producto(s) con un «Tipo» no reconocido quedaron como «Otro». Revisa que usen el vocabulario de la plantilla.</span>`});
-    if(res.skipped) msgs.push({t:'warn',h:`<span><b>${res.skipped}</b> fila(s) sin nombre se omitieron.</span>`});
-    if(!res.NUC.length) msgs.push({t:'warn',h:`<span>No se detectaron obras citables (artículos, libros o capítulos): el índice h será 0 hasta que existan.</span>`});
-    show(msgs);
-    LASTHTML=buildReport(res.ALL,res.NUC,LASTNAME);
-    document.getElementById('preview').srcdoc=LASTHTML;
-    document.getElementById('previewbox').style.display='block';
-    document.getElementById('resultbar').style.display='flex';
-    const cited=res.NUC.filter(o=>o.cites>0).length;
-    document.getElementById('phmeta').textContent=cited?`${cited} obra(s) con citas precargadas`:'sin citas en el archivo';
-    document.getElementById('genmeta').textContent='Informe listo · '+LASTNAME;
-  }catch(e){
-    show([{t:'err',h:'<span>⚠️ '+(typeof e==='string'?e:'No se pudo procesar el archivo.')+'</span>'}]);
-    document.getElementById('previewbox').style.display='none';
-    document.getElementById('resultbar').style.display='none';
-  }
-}
-function handleFile(f){
-  if(!f) return;
-  LASTNAME=f.name;
-  const rd=new FileReader();
-  rd.onload=e=>{
-    try{
-      WB=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      const sel=document.getElementById('sheet'); sel.innerHTML='';
-      WB.SheetNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
-      // smart default: prefer a sheet named like 2020-2024 / PRODUCTOS, else first
-      const pref=WB.SheetNames.find(n=>/\d{4}.?\d{4}/.test(n))||WB.SheetNames.find(n=>/producto/i.test(n))||WB.SheetNames[0];
-      sel.value=pref;
-      document.getElementById('sheetsel').style.display=WB.SheetNames.length>1?'block':'none';
-      regen();
-    }catch(err){show([{t:'err',h:'<span>⚠️ El archivo no es un Excel válido.</span>'}]);}
-  };
-  rd.readAsArrayBuffer(f);
-}
-
-// ---------- template Excel download ----------
-function downloadTemplate(){
-  const head=['Tipo','Nombre','Año','Mes','Scopus','Dimensions','Altmetric'];
-  const ej=[
-    ['Producción bibliográfica - Artículo - Publicado en revista especializada','Título del artículo de investigación',2023,'Marzo',0,0,0],
-    ['Producción bibliográfica - Libro - Capítulo de libro','Título del capítulo de libro',2022,'Octubre',0,0,0],
-    ['Producción en artes, arquitectura y diseño - Obra o producto','Nombre de la obra de arte/diseño',2021,'Mayo','','',''],
-    ['Producción bibliográfica - Otro artículo publicado - Columna de opinión','Título de la columna de opinión',2020,'Julio','','','']
-  ];
-  const wsP=XLSX.utils.aoa_to_sheet([head,...ej]);
-  wsP['!cols']=[{wch:58},{wch:46},{wch:7},{wch:12},{wch:9},{wch:11},{wch:10}];
-
-  const instr=[
-    ['INSTRUCCIONES — Plantilla para el informe de índice h'],
-    [''],
-    ['1. Llena la hoja PRODUCTOS. No cambies los nombres de las columnas de la fila 1.'],
-    ['2. Tipo: copia un valor EXACTO de la hoja "Tipos_validos". De ahí depende la clasificación.'],
-    ['3. Nombre: título del producto. Año: número de 4 dígitos. Mes: opcional.'],
-    ['4. Scopus / Dimensions: número de citas (opcional). Si lo llenas, se precarga en la calculadora.'],
-    ['5. Altmetric: atención mediática (opcional, NO se usa para el índice h).'],
-    ['6. Borra las filas de ejemplo antes de generar tu informe.'],
-    [''],
-    ['Cuentan para el índice h (núcleo citable): Artículo en revista especializada,'],
-    ['Libro resultado de investigación, Capítulo de libro y Otro capítulo de libro publicado.'],
-    ['Las obras de arte/diseño se reportan como creación, aparte del índice h.']
-  ];
-  const wsI=XLSX.utils.aoa_to_sheet(instr); wsI['!cols']=[{wch:95}];
-
-  const tv=[['Tipo (copiar exacto)','¿Cuenta para índice h?']];
-  TIPOS.forEach(t=>tv.push([t.v, t.n?'Sí (núcleo citable)':'No']));
-  const wsT=XLSX.utils.aoa_to_sheet(tv); wsT['!cols']=[{wch:90},{wch:22}];
-
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,wsP,'PRODUCTOS');
-  XLSX.utils.book_append_sheet(wb,wsT,'Tipos_validos');
-  XLSX.utils.book_append_sheet(wb,wsI,'Instrucciones');
-  XLSX.writeFile(wb,'plantilla_indice_h.xlsx');
-}
-
-// ---------- downloads ----------
-function downloadReport(){
-  if(!LASTHTML)return;
-  const blob=new Blob([LASTHTML],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='informe_indice_h.html';a.click();URL.revokeObjectURL(a.href);
-}
-function openReport(){
-  if(!LASTHTML)return;
-  const blob=new Blob([LASTHTML],{type:'text/html;charset=utf-8'});
-  window.open(URL.createObjectURL(blob),'_blank');
-}
-
-// ---------- wiring ----------
-const drop=document.getElementById('drop'), file=document.getElementById('file');
-drop.onclick=()=>file.click();
-file.onchange=e=>handleFile(e.target.files[0]);
-drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
-drop.ondragleave=()=>drop.classList.remove('over');
-drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');handleFile(e.dataTransfer.files[0]);};
-</script>
+<script src="js/core/utils.js"></script>
+<script src="js/core/registry.js"></script>
+<script src="js/sources/gruplac.js"></script>
+<script src="js/sources/scopus.js"></script>
+<script src="js/sources/wos.js"></script>
+<script src="js/sources/scholar.js"></script>
+<script src="js/sources/dimensions.js"></script>
+<script src="js/sources/generic.js"></script>
+<script src="js/core/analyze.js"></script>
+<script src="js/report.js"></script>
+<script src="js/template.js"></script>
+<script src="js/app.js"></script>
 </body></html>
