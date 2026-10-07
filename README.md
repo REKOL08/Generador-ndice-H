@@ -5,7 +5,7 @@ Demo: https://rekol08.github.io/Generador-ndice-H/
 
 ## Cómo funciona
 - `js/core/analyze.js`: detecta fila de encabezados, hoja, columnas (título, año, citas, tipo, autor) y la fuente.
-- `js/sources/*.js`: un archivo por fuente (GrupLAC, Scopus, WoS, Scholar, Dimensions, genérico).
+- `js/sources/*.js`: un archivo por fuente (GrupLAC, Scopus, Dimensions, Google Scholar, genérico; Altmetric no suma citas).
 - `js/report.js` + plantilla en `index.html` (`#reportTpl`): informe HTML autónomo.
 
 ## Agregar una fuente nueva

@@ -30,6 +30,24 @@ window.HI = window.HI || {};
     return m ? parseInt(m[0], 10) : null;
   };
 
+  // URL segura (solo http/https o DOI suelto); si no es válida devuelve ''.
+  HI.cleanUrl = function (x) {
+    const s = String(x == null ? '' : x).trim().split(/\s+/)[0];
+    if (/^https?:\/\//i.test(s)) return s;
+    if (/^10\.\d{4,9}\//.test(s)) return 'https://doi.org/' + s;
+    if (/^www\./i.test(s)) return 'https://' + s;
+    return '';
+  };
+  // Fecha de consulta legible (acepta fecha serial de Excel o texto).
+  HI.fmtDate = function (x) {
+    if (x === '' || x == null) return '';
+    if (typeof x === 'number' && x > 20000 && x < 80000) {
+      const d = new Date(Math.round((x - 25569) * 86400000));
+      return String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear();
+    }
+    return String(x).trim();
+  };
+
   // ---- métricas ----
   HI.hIndex = function (arr) {
     const s = arr.slice().sort((a, b) => b - a); let h = 0;

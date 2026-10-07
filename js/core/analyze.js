@@ -2,7 +2,7 @@
  * y la convierte en una lista normalizada de obras. No conoce formatos concretos:
  * todo lo específico vive en js/sources/. */
 (function (HI) {
-  const FIELD_ORDER = ['title', 'year', 'type', 'author', 'cites'];
+  const FIELD_ORDER = ['title', 'year', 'type', 'author', 'link', 'date', 'cites'];
 
   function wordHas(h, w) { return (' ' + h + ' ').indexOf(' ' + w + ' ') >= 0; }
   function matchScore(h, alias) {
@@ -49,7 +49,7 @@
     H.forEach((h, c) => { if (!h) return; FIELD_ORDER.forEach(f => { const s = fieldScore(h, f); if (s) cand.push({ f, c, s }); }); });
     cand.sort((a, b) => b.s - a.s || FIELD_ORDER.indexOf(a.f) - FIELD_ORDER.indexOf(b.f) || a.c - b.c);
 
-    const map = { title: -1, year: -1, type: -1, author: -1, cites: [] };
+    const map = { title: -1, year: -1, type: -1, author: -1, link: -1, date: -1, cites: [] };
     const used = new Set(), how = {};
     cand.forEach(x => {
       if (used.has(x.c)) return;
@@ -141,21 +141,22 @@
       if (k.c === 'Otro') res.otros++;
       const cites = map.cites.reduce((m, c) => Math.max(m, HI.num(row[c])), 0);
       res.items.push({ n, y: map.year >= 0 ? HI.parseYear(row[map.year]) : null, c: k.c, nu: k.nu, t: k.t, cites,
-        a: map.author >= 0 ? splitAuthors(row[map.author]) : [] });
+        a: map.author >= 0 ? splitAuthors(row[map.author]) : [],
+        l: map.link >= 0 ? HI.cleanUrl(row[map.link]) : '', d: map.date >= 0 ? HI.fmtDate(row[map.date]) : '' });
     }
     return res;
   }
 
   // Une items de una o varias hojas/archivos: lista completa, núcleo sin duplicados y resumen por autor.
   function finalize(items) {
-    const ALL = items.map(o => ({ n: o.n, y: o.y, c: o.c, nu: o.nu }));
+    const ALL = items.map(o => ({ n: o.n, y: o.y, c: o.c, nu: o.nu, l: o.l, d: o.d, ct: o.cites }));
     const map = new Map();
     items.forEach(o => {
       if (!o.nu) return;
       const key = HI.norm(o.n);
       const ex = map.get(key);
-      if (!ex) map.set(key, { n: o.n, y: o.y, t: o.t, cites: o.cites, a: o.a.slice() });
-      else { ex.cites = Math.max(ex.cites, o.cites); if (!ex.y && o.y) ex.y = o.y; o.a.forEach(x => { if (!ex.a.includes(x)) ex.a.push(x); }); }
+      if (!ex) map.set(key, { n: o.n, y: o.y, t: o.t, cites: o.cites, a: o.a.slice(), l: o.l, d: o.d });
+      else { ex.cites = Math.max(ex.cites, o.cites); if (!ex.y && o.y) ex.y = o.y; if (!ex.l && o.l) ex.l = o.l; if (!ex.d && o.d) ex.d = o.d; o.a.forEach(x => { if (!ex.a.includes(x)) ex.a.push(x); }); }
     });
     const NUC = [...map.values()];
     const au = new Map();

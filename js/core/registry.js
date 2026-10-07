@@ -20,17 +20,21 @@ window.HI = window.HI || {};
     title: { aliases: ['title', 'titulo', 'nombre', 'nombre del producto', 'nombre producto', 'producto', 'document title', 'article title', 'titulo del articulo', 'titulo de la obra', 'obra', 'articulo', 'name'],
              exclude: ['source', 'journal', 'revista', 'book series', 'fuente', 'serie', 'subject'] },
     year: { aliases: ['year', 'ano', 'anio', 'publication year', 'pub year', 'ano de publicacion', 'ano publicacion', 'fecha', 'date', 'published', 'fecha de publicacion'],
-            exclude: ['access', 'acceso', 'retriev', 'per year', 'por ano', 'cited', 'citas'] },
-    cites: { aliases: ['cited by', 'times cited', 'citations', 'citas', 'cites', 'cited', 'total citations', 'citado por', 'numero de citas', 'n citas', 'scopus', 'dimensions', 'dimec', 'wos', 'web of science', 'google scholar', 'scholar', 'openalex'],
-             exclude: ['reference', 'referencia', 'per year', 'por ano', 'rank', 'percentile', 'percentil', 'normalized', 'fwci', 'altmetric', 'h index', 'source id', 'link', 'url', 'id'] , exactOnly: ['id'] },
+            exclude: ['access', 'acceso', 'retriev', 'consulta', 'per year', 'por ano', 'cited', 'citas'] },
+    cites: { aliases: ['cited by', 'times cited', 'citations', 'citas', 'cites', 'cited', 'total citations', 'citado por', 'numero de citas', 'n citas', 'scopus', 'dimensions', 'dimec', 'google scholar', 'scholar', 'openalex'],
+             exclude: ['reference', 'referencia', 'per year', 'por ano', 'rank', 'percentile', 'percentil', 'normalized', 'fwci', 'altmetric', 'h index', 'source id', 'link', 'url', 'id', 'consulta'] , exactOnly: ['id'] },
     type: { aliases: ['type', 'tipo', 'document type', 'doc type', 'tipo de producto', 'tipologia', 'categoria', 'publication type', 'tipo de documento'],
             exclude: ['source type'] },
+    link: { aliases: ['enlace', 'enlaces', 'link', 'url', 'doi', 'enlace al articulo', 'hipervinculo', 'vinculo', 'direccion web', 'sitio web'],
+            exclude: ['issn', 'consulta'] },
+    date: { aliases: ['fecha de consulta', 'fecha consulta', 'fecha de consulta de citas', 'fecha de acceso', 'fecha acceso', 'consulta', 'accessed', 'access date', 'date accessed', 'retrieved', 'date retrieved'],
+            exclude: [] },
     author: { aliases: ['authors', 'author', 'autores', 'autor', 'author full names', 'author names', 'creators', 'investigador', 'investigadores', 'docente', 'nombre del autor', 'author s'],
               exclude: ['id', 'affiliation', 'afiliacion', 'email', 'keyword', 'correspond', 'address'] }
   };
 
   HI.FIELD_NAMES = Object.keys(FIELDS);
-  HI.FIELD_LABELS = { title: 'Título / nombre', year: 'Año', cites: 'Citas', type: 'Tipo de producto', author: 'Autor(es)' };
+  HI.FIELD_LABELS = { title: 'Título / nombre', year: 'Año', cites: 'Citas', type: 'Tipo de producto', author: 'Autor(es)', link: 'Enlace al artículo', date: 'Fecha de consulta' };
 
   HI.Sources = {
     register(s) { list.push(s); },

@@ -2,7 +2,7 @@
 (function (HI) {
   HI.buildReport = function (ALL, NUC, fileName) {
     const tpl = document.getElementById('reportTpl').textContent.split('<\\/script>').join('</scr' + 'ipt>');
-    const esc = o => Object.assign({}, o, { n: HI.escapeHtml(o.n) });
+    const esc = o => Object.assign({}, o, { n: HI.escapeHtml(o.n), l: HI.escapeHtml(o.l || ''), d: HI.escapeHtml(o.d || '') });
     const safe = o => JSON.stringify(o).replace(/</g, '\\u003c');
     const today = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
     const nuc = NUC.map(o => ({ n: HI.escapeHtml(o.n), y: o.y, t: o.t, cites: o.cites }));

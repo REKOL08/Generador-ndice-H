@@ -68,7 +68,7 @@ table.at td{padding:7px 10px;border-bottom:1px solid var(--line)}
 
 <div class="eyebrow">Bibliotecas Areandina </div>
 <h1 class="serif">Generador de informe de índice h</h1>
-<p class="sub">Sube cualquier Excel o CSV con tus obras (GrupLAC, Scopus, Web of Science, Google Scholar, Dimensions o una tabla propia). El sistema detecta solo las columnas y genera el análisis al instante, sin plantilla.</p>
+<p class="sub">Sube cualquier Excel o CSV con tus obras (GrupLAC, Scopus, Dimensions, Altmetric, Google Scholar o una tabla propia). El sistema detecta solo las columnas y genera el análisis al instante, sin plantilla.</p>
 
 <div class="scard" style="margin-top:26px">
   <div class="drop big" id="drop">
@@ -107,8 +107,8 @@ table.at td{padding:7px 10px;border-bottom:1px solid var(--line)}
 <details>
   <summary>¿Cómo se leen los archivos y qué cuenta para el índice h?</summary>
   <ul>
-    <li><b>Detección automática:</b> busca la fila de encabezados (aunque no sea la primera), elige la hoja más completa y reconoce columnas como <code>Title/Título/Nombre</code>, <code>Year/Año</code>, <code>Cited by/Times cited/Citas/Scopus</code>, <code>Type/Tipo</code> y <code>Authors/Autores</code>. Si no hay encabezados útiles, las deduce por el contenido.</li>
-    <li><b>Citas:</b> si hay varias columnas de citas (p. ej. Scopus y Dimensions) se toma el mayor valor por obra. Sin citas, el informe se genera y puedes ingresarlas en la calculadora.</li>
+    <li><b>Detección automática:</b> busca la fila de encabezados (aunque no sea la primera), elige la hoja más completa y reconoce columnas como <code>Title/Título/Nombre</code>, <code>Year/Año</code>, <code>Cited by/Citas/Scopus/Dimensions/Scholar</code>, <code>Type/Tipo</code>, <code>Authors/Autores</code>, <code>Enlace/URL/DOI</code> y <code>Fecha de consulta</code>. Si no hay encabezados útiles, las deduce por el contenido.</li>
+    <li><b>Citas:</b> si hay varias columnas de citas (Scopus, Dimensions, Google Scholar) se toma el mayor valor por obra. Altmetric mide atención, no citas: no entra al índice h. Web of Science no se utiliza. Sin citas, el informe se genera y puedes ingresarlas en la calculadora.</li>
     <li><b>Tipo GrupLAC:</b> solo artículos en revista, libros de investigación y capítulos entran al índice h; prensa, divulgación, tutorías y producción técnica no. En otras fuentes, todas las obras cuentan salvo tipos claramente no citables.</li>
     <li>Los títulos duplicados se consolidan en una sola obra. Con varios archivos, se combinan sin repetir.</li>
   </ul>
@@ -176,7 +176,7 @@ td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr.core td{background:rgba(44,110,128,.09)}
 .rank{color:var(--ink3);font-weight:600;font-variant-numeric:tabular-nums}
 .nombre{max-width:430px;line-height:1.35}.yr{color:var(--ink2);font-variant-numeric:tabular-nums}
-.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoration:underline}.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .chartbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
 .chart-h{height:320px;position:relative}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -229,7 +229,7 @@ tr.core td{background:rgba(44,110,128,.09)}
 <div class="hero">
   <div class="icard pending"><span class="tag tag-pend">Calculadora en vivo</span>
     <div class="lbl">Índice h de Hirsch</div><div class="big" id="heroH" style="color:var(--ink3)">0</div>
-    <div class="note">Si tu archivo trae citas (Scopus/Dimensions), se cargan aquí. Si no, ingrésalas en la pestaña <b>«Calculadora índice h»</b>. Fuentes: Scopus, WoS o Google Scholar.</div></div>
+    <div class="note">Si tu archivo trae citas (Scopus/Dimensions), se cargan aquí. Si no, ingrésalas en la pestaña <b>«Calculadora índice h»</b>. Fuentes: únicamente Scopus, Dimensions, Altmetric (atención) y Google Scholar.</div></div>
   <div class="icard ipp"><span class="tag tag-ok">Producción del archivo</span>
     <div class="lbl">Núcleo citable (obras únicas)</div><div class="big mNuc"></div>
     <div class="note">Artículos, libros y capítulos arbitrados, tras consolidar duplicados. <b>Es producción, no citas.</b> El índice h depende de cuántas citas reciban estas obras.</div></div>
@@ -304,7 +304,7 @@ tr.core td{background:rgba(44,110,128,.09)}
     <button class="fbtn" onclick="setF('Divulgación pública',this)">Divulgación</button>
   </div>
   <div class="tinfo" id="tinfo"></div>
-  <table><thead><tr><th style="width:34px">#</th><th>Nombre del producto</th><th style="width:52px">Año</th><th style="width:180px">Categoría</th></tr></thead><tbody id="ptable"></tbody></table>
+  <table><thead><tr><th style="width:34px">#</th><th>Nombre del producto</th><th style="width:52px">Año</th><th style="width:200px">Categoría (enlace al artículo)</th><th style="width:60px">Citas</th><th style="width:110px">Fecha de consulta</th></tr></thead><tbody id="ptable"></tbody></table>
   <div class="pager"><button onclick="prevP()">← Anterior</button><span id="pinfo"></span><button onclick="nextP()">Siguiente →</button></div>
 </div>
 
@@ -320,9 +320,9 @@ tr.core td{background:rgba(44,110,128,.09)}
     <div>
       <h4 class="st2">Ruta para conseguir las citas reales</h4>
       <ol class="steps">
-        <li>Busca el grupo o cada autor en Google Scholar, Scopus o Web of Science.</li>
+        <li>Busca el grupo o cada autor en Google Scholar, Scopus o Dimensions (Altmetric solo como indicador de atención).</li>
         <li>Localiza las obras del núcleo citable.</li>
-        <li>Anota el «Citado por N» de cada obra (regístralo en las columnas Scopus/Dimensions del Excel).</li>
+        <li>Anota el «Citado por N» de cada obra (regístralo en las columnas Scopus/Dimensions/Scholar del Excel).</li>
         <li>Ingresa o ajusta esos números en la calculadora.</li>
         <li>Reporta el índice h con fuente y fecha de consulta.</li>
       </ol>
@@ -350,7 +350,8 @@ tr.core td{background:rgba(44,110,128,.09)}
   <h4 class="st2">Qué anticipar (preguntas probables de pares)</h4>
   <ul class="checks warn-li">
     <li>«¿Por qué <span class="mTotal"></span> productos pero pocos indexados?» → distingue producción de divulgación; no infles el dato.</li>
-    <li>«¿Cuál es el índice h?» → «se calcula con citas; lo consolidamos desde Scopus/Scholar con fecha de consulta».</li>
+    <li>«¿Cuál es el índice h?» → «se calcula con citas; lo consolidamos desde Scopus, Dimensions y Google Scholar con fecha de consulta».</li>
+    <li>«¿Qué fuentes de citación usan?» → «únicamente Scopus, Dimensions, Altmetric (atención, no suma citas) y Google Scholar; no se utiliza Web of Science».</li>
     <li>«¿Por qué varía la producción por año?» → ten lista la explicación.</li>
     <li>«¿Las obras de diseño cómo se evalúan?» → criterios de creación Minciencias, circulación y reconocimiento.</li>
   </ul>
@@ -358,7 +359,7 @@ tr.core td{background:rgba(44,110,128,.09)}
     <p class="body" style="margin-bottom:0">Separa dos cifras: <b>producción</b> (<span class="mNuc"></span> citables + <span class="mArte"></span> creación, evidencia de actividad) e <b>impacto</b> (índice h, que exige citas reales con fuente y fecha). Complementa el índice h con evidencia de circulación, premiación y apropiación.</p></div>
 </div>
 
-<div class="footer">Generado automáticamente a partir de «<span class="mFile"></span>» (<span class="mTotal"></span> productos · <span class="mNuc"></span> obras citables únicas) el <span class="mDate"></span>. Las citas deben provenir de Scopus/WoS/Scholar. Las «citas de ejemplo» son ficticias y solo ilustran el cálculo.</div>
+<div class="footer">Generado automáticamente a partir de «<span class="mFile"></span>» (<span class="mTotal"></span> productos · <span class="mNuc"></span> obras citables únicas) el <span class="mDate"></span>. Las citas deben provenir únicamente de Scopus, Dimensions, Altmetric (atención) y Google Scholar. Las «citas de ejemplo» son ficticias y solo ilustran el cálculo.</div>
 </div>
 
 <script>
@@ -477,7 +478,7 @@ function render(){const tb=document.getElementById('ptable'),s=(page-1)*SIZE,sl=
  document.getElementById('pinfo').textContent=`Página ${page} de ${Math.ceil(filtered.length/SIZE)||1}`;
  tb.innerHTML=sl.map((p,j)=>`<tr class="${p.nu?'core':''}"><td class="rank">${s+j+1}</td>
    <td class="nombre">${p.nu?'★ ':''}${p.n}</td><td class="yr">${p.y||''}</td>
-   <td><span class="badge" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c}</span></td></tr>`).join('');}
+   <td>${p.l?`<a class="badge" href="${p.l}" target="_blank" rel="noopener" title="Abrir artículo" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c} ↗</a>`:`<span class="badge" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c}</span>`}</td><td class="yr">${p.ct||''}</td><td class="yr">${p.d||'—'}</td></tr>`).join('');}
 function prevP(){if(page>1){page--;render();}}
 function nextP(){if(page<Math.ceil(filtered.length/SIZE)){page++;render();}}
 
@@ -490,7 +491,6 @@ applyMeta();buildCalc();recompute();apply();
 <script src="js/core/registry.js"></script>
 <script src="js/sources/gruplac.js"></script>
 <script src="js/sources/scopus.js"></script>
-<script src="js/sources/wos.js"></script>
 <script src="js/sources/scholar.js"></script>
 <script src="js/sources/dimensions.js"></script>
 <script src="js/sources/generic.js"></script>
