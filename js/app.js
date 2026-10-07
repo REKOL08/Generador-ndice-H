@@ -121,6 +121,14 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   HI.downloadReport = () => { if (LASTHTML) download('informe_indice_h.html', LASTHTML, 'text/html;charset=utf-8'); };
+  // PDF: abre el cuadro de impresión del informe (elegir «Guardar como PDF»).
+  HI.downloadPdf = () => {
+    const w = $('preview').contentWindow;
+    if (!LASTHTML || !w) return;
+    w.focus(); if (w.prepPrint) w.prepPrint();
+    w.print();
+    setTimeout(() => { if (w.endPrint) w.endPrint(); }, 1500);
+  };
   HI.openReport = () => { if (LASTHTML) window.open(URL.createObjectURL(new Blob([LASTHTML], { type: 'text/html;charset=utf-8' })), '_blank'); };
   HI.downloadAuthors = () => {
     const q = v => '"' + String(v).replace(/"/g, '""') + '"';

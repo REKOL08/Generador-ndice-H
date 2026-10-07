@@ -83,7 +83,8 @@ table.at td{padding:7px 10px;border-bottom:1px solid var(--line)}
 <div class="kpis" id="kpis"></div>
 
 <div class="resultbar" id="resultbar" style="display:none">
-  <button class="btn" onclick="HI.downloadReport()">⬇ Descargar informe HTML</button>
+  <button class="btn ghost" onclick="HI.downloadReport()">⬇ Descargar informe HTML</button>
+  <button class="btn" onclick="HI.downloadPdf()">⬇ Descargar informe PDF</button>
   <button class="btn ghost" onclick="HI.openReport()">↗ Abrir en pestaña nueva</button>
   <span class="note" id="genmeta"></span>
 </div>
@@ -108,7 +109,7 @@ table.at td{padding:7px 10px;border-bottom:1px solid var(--line)}
   <summary>¿Cómo se leen los archivos y qué cuenta para el índice h?</summary>
   <ul>
     <li><b>Detección automática:</b> busca la fila de encabezados (aunque no sea la primera), elige la hoja más completa y reconoce columnas como <code>Title/Título/Nombre</code>, <code>Year/Año</code>, <code>Cited by/Citas/Scopus/Dimensions/Scholar</code>, <code>Type/Tipo</code>, <code>Authors/Autores</code>, <code>Enlace/URL/DOI</code> y <code>Fecha de consulta</code>. Si no hay encabezados útiles, las deduce por el contenido.</li>
-    <li><b>Citas:</b> si hay varias columnas de citas (Scopus, Dimensions, Google Scholar) se toma el mayor valor por obra. Altmetric mide atención, no citas: no entra al índice h. Web of Science no se utiliza. Sin citas, el informe se genera y puedes ingresarlas en la calculadora.</li>
+    <li><b>Citas:</b> si hay varias columnas de citas (Scopus, Dimensions, Google Scholar) se toma el mayor valor por obra. Altmetric mide atención, no citas: no entra al índice h. Sin citas, el informe se genera y puedes ingresarlas en la calculadora.</li>
     <li><b>Tipo GrupLAC:</b> solo artículos en revista, libros de investigación y capítulos entran al índice h; prensa, divulgación, tutorías y producción técnica no. En otras fuentes, todas las obras cuentan salvo tipos claramente no citables.</li>
     <li>Los títulos duplicados se consolidan en una sola obra. Con varios archivos, se combinan sin repetir.</li>
   </ul>
@@ -232,6 +233,19 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
 .refs p{margin-bottom:6px}
 .footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink3)}
 @media(max-width:720px){.hero,.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}h1{font-size:30px}}
+@media print{
+ @page{size:A4;margin:12mm}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body{background:#fff}
+ .tabs,.hbar,.actbtn,.pager,.filters,.search,#detail,.noprint,.hint{display:none!important}
+ .panel{display:block!important;animation:none;break-before:page}
+ #calc.panel{break-before:auto}
+ .wrap{padding:0;max-width:none}
+ .hbox.click,.icard,.m,.callout,.chartbox,tr,.calcrow{break-inside:avoid}
+ .hbox.click.sel{outline:none}
+ .grid2{grid-template-columns:1fr 1fr}
+ .citein{border:none;background:none;padding:0;font-weight:700}
+}
 </style>
 </head><body><div class="wrap">
 
@@ -259,6 +273,7 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
 </div>
 
 <div class="tabs">
+  <button class="actbtn primary noprint" style="margin:0 10px 6px 0" onclick="window.print()" title="En el cuadro de impresión elige «Guardar como PDF»">⬇ Guardar como PDF</button>
   <button class="tab active" onclick="showTab('calc',this)">Calculadora índice h</button>
   <button class="tab" onclick="showTab('produccion',this)">Producción del archivo</button>
   <button class="tab" onclick="showTab('metodo',this)">Qué es el índice h</button>
@@ -378,7 +393,7 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
   <ul class="checks warn-li">
     <li>«¿Por qué <span class="mTotal"></span> productos pero pocos indexados?» → distingue producción de divulgación; no infles el dato.</li>
     <li>«¿Cuál es el índice h?» → «se calcula con citas; lo consolidamos desde Scopus, Dimensions y Google Scholar con fecha de consulta».</li>
-    <li>«¿Qué fuentes de citación usan?» → «únicamente Scopus, Dimensions, Altmetric (atención, no suma citas) y Google Scholar; no se utiliza Web of Science».</li>
+    <li>«¿Qué fuentes de citación usan?» → «únicamente Scopus, Dimensions, Altmetric (atención, no suma citas) y Google Scholar».</li>
     <li>«¿Por qué varía la producción por año?» → ten lista la explicación.</li>
     <li>«¿Las obras de diseño cómo se evalúan?» → criterios de creación Minciencias, circulación y reconocimiento.</li>
   </ul>
@@ -544,20 +559,31 @@ function render(){const tb=document.getElementById('ptable'),s=(page-1)*SIZE,sl=
 function prevP(){if(page>1){page--;render();}}
 function nextP(){if(page<Math.ceil(filtered.length/SIZE)){page++;render();}}
 
+function prepPrint(){
+ if(document.body.classList.contains('printing'))return;
+ document.body.classList.add('printing');Chart.defaults.animation=false;
+ SIZE=1e9;page=1;render();drawH();drawComp();drawYear();
+ try{document.title='Informe índice h · '+String(META.file).replace(/\.[a-z0-9]+$/i,'');}catch(e){}
+}
+function endPrint(){
+ if(!document.body.classList.contains('printing'))return;
+ document.body.classList.remove('printing');SIZE=25;page=1;render();drawH();
+}
+window.addEventListener('beforeprint',prepPrint);window.addEventListener('afterprint',endPrint);
 applyMeta();buildCalc();recompute();apply();
 <\/script></body></html>
 </script>
 
 
-<script src="js/core/utils.js?v=20261007c"></script>
-<script src="js/core/registry.js?v=20261007c"></script>
-<script src="js/sources/gruplac.js?v=20261007c"></script>
-<script src="js/sources/scopus.js?v=20261007c"></script>
-<script src="js/sources/scholar.js?v=20261007c"></script>
-<script src="js/sources/dimensions.js?v=20261007c"></script>
-<script src="js/sources/generic.js?v=20261007c"></script>
-<script src="js/core/analyze.js?v=20261007c"></script>
-<script src="js/report.js?v=20261007c"></script>
-<script src="js/template.js?v=20261007c"></script>
-<script src="js/app.js?v=20261007c"></script>
+<script src="js/core/utils.js?v=20261007d"></script>
+<script src="js/core/registry.js?v=20261007d"></script>
+<script src="js/sources/gruplac.js?v=20261007d"></script>
+<script src="js/sources/scopus.js?v=20261007d"></script>
+<script src="js/sources/scholar.js?v=20261007d"></script>
+<script src="js/sources/dimensions.js?v=20261007d"></script>
+<script src="js/sources/generic.js?v=20261007d"></script>
+<script src="js/core/analyze.js?v=20261007d"></script>
+<script src="js/report.js?v=20261007d"></script>
+<script src="js/template.js?v=20261007d"></script>
+<script src="js/app.js?v=20261007d"></script>
 </body></html>
