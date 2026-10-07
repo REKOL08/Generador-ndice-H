@@ -188,6 +188,12 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
 .calc-head{display:grid;grid-template-columns:28px 1fr 86px;gap:11px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);font-weight:700;padding-bottom:8px;border-bottom:1.5px solid var(--line2)}
 .calc-head span:last-child{text-align:center}
 .tpill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:10px;background:rgba(44,110,128,.12);color:var(--teal-d);margin-left:6px;vertical-align:middle}
+.fx{font-family:'Fraunces',serif;font-size:19px;background:#fff;border:1px dashed var(--line2);border-radius:10px;padding:10px 14px;margin:8px 0 12px;text-align:center;color:var(--teal-d)}
+.stp{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.stp th{text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--ink2);padding:6px 8px;border-bottom:1.5px solid var(--line2)}
+.stp td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.stp td.on{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stp tr.pass td.ver{color:var(--green);font-weight:700}.stp tr.fail td{background:#FBEEE6}.stp tr.fail td.ver{color:var(--red);font-weight:700}
 .hbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
 .actbtn{padding:7px 15px;font-size:12.5px;border:1px solid var(--line2);border-radius:9px;cursor:pointer;background:var(--card);color:var(--ink2);font-family:inherit;font-weight:600}
 .actbtn:hover{border-color:var(--teal)}
@@ -264,6 +270,18 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
     <div class="hbox alt"><div class="ht">Citas totales</div><div class="hn" id="hTot">0</div></div>
     <div class="hbox alt"><div class="ht">Citas máx.</div><div class="hn" id="hMax">0</div></div>
     <div class="hbox alt"><div class="ht">i10 (≥10 citas)</div><div class="hn" id="hI10">0</div></div>
+  </div>
+  <div class="callout"><h4 class="st2" style="margin-top:0">¿Cómo se calcula? La fórmula paso a paso</h4>
+    <div class="fx">h = el mayor número <i>i</i> tal que la obra n.º <i>i</i> tiene al menos <i>i</i> citas</div>
+    <ol class="steps">
+      <li><b>Ordena</b> las obras de la que más citas tiene a la que menos.</li>
+      <li><b>Numera</b> cada una: 1, 2, 3… (ese es su «rango» <i>i</i>).</li>
+      <li><b>Compara:</b> ¿las citas de la obra son ≥ su número? Si sí, sigue con la siguiente.</li>
+      <li>El <b>índice h</b> es el último número en que aún se cumple. Al primer «no», te detienes.</li>
+    </ol>
+    <p class="body" style="font-size:12.5px;margin:8px 0 0">Así queda con los datos de este archivo (se actualiza cuando cambias las citas):</p>
+    <table class="stp"><thead><tr><th style="width:44px">N.º (i)</th><th>Obra</th><th style="width:70px">Citas</th><th style="width:150px">¿Citas ≥ N.º?</th></tr></thead><tbody id="hSteps"></tbody></table>
+    <p class="body" id="hConc" style="margin:10px 0 0;font-weight:600;color:var(--teal-d)"></p>
   </div>
   <div class="grid2">
     <div>
@@ -426,7 +444,17 @@ function recompute(){
  document.getElementById('hVal').textContent=h;
  const hh=document.getElementById('heroH');hh.textContent=h;hh.style.color=h>0?'var(--teal-d)':'var(--ink3)';
  document.getElementById('hTot').textContent=tot;document.getElementById('hMax').textContent=mx;document.getElementById('hI10').textContent=i10;
- drawH();
+ drawH();drawSteps();
+}
+function drawSteps(){
+ const tb=document.getElementById('hSteps'),cc=document.getElementById('hConc');if(!tb)return;
+ if(!NUC.length){tb.innerHTML='';cc.textContent='';return;}
+ const ord=NUC.map((o,i)=>({n:o.n,c:CITES[i]||0})).sort((a,b)=>b.c-a.c);const h=hIndex(CITES);
+ const show=Math.min(ord.length,h+2);let rows='';
+ for(let i=0;i<show;i++){const ok=ord[i].c>=i+1;
+  rows+='<tr class="'+(ok?'pass':'fail')+'"><td>'+(i+1)+'</td><td class="on" title="'+ord[i].n+'">'+ord[i].n+'</td><td>'+ord[i].c+'</td><td class="ver">'+(ok?'✓ '+ord[i].c+' ≥ '+(i+1):'✗ '+ord[i].c+' &lt; '+(i+1)+' → aquí paramos')+'</td></tr>';}
+ tb.innerHTML=rows+(ord.length>show?'<tr><td colspan="4" style="color:var(--ink3)">… y '+(ord.length-show)+' obra(s) más con menos citas (ya no pueden aumentar el índice h).</td></tr>':'');
+ cc.textContent=h>0?'Resultado: la última obra que cumple es la n.º '+h+', por lo tanto el índice h = '+h+'.':'Resultado: ninguna obra llega ni a 1 cita, por lo tanto el índice h = 0 (ingresa las citas para calcularlo).';
 }
 function fillExample(){CITES=NUC.map((_,i)=>Math.max(0,16-i));buildCalc();recompute();}
 function restorePrefill(){CITES=NUC.map(o=>o.cites||0);buildCalc();recompute();}
