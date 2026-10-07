@@ -195,6 +195,12 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
 .stp td{padding:6px 8px;border-bottom:1px solid var(--line)}
 .stp td.on{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stp tr.pass td.ver{color:var(--green);font-weight:700}.stp tr.fail td{background:#FBEEE6}.stp tr.fail td.ver{color:var(--red);font-weight:700}
+.nombre .sub2{font-size:11px;color:var(--ink3);margin-top:1px}
+.qlinks{font-size:10.5px;color:var(--ink3);margin-top:2px}.qlinks a{color:var(--teal-d);text-decoration:none;font-weight:600}.qlinks a:hover{text-decoration:underline}
+.br{display:grid;grid-template-columns:minmax(90px,170px) 1fr 34px;gap:8px;align-items:center;font-size:12.5px;margin:5px 0}
+.br>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br .barw{background:var(--paper);border-radius:5px;height:10px;display:block}.br .bar{display:block;height:10px;background:var(--teal);border-radius:5px}
+.br b{text-align:right}
 .hbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
 .actbtn{padding:7px 15px;font-size:12.5px;border:1px solid var(--line2);border-radius:9px;cursor:pointer;background:var(--card);color:var(--ink2);font-family:inherit;font-weight:600}
 .actbtn:hover{border-color:var(--teal)}
@@ -263,7 +269,7 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
     <div class="note">Artículos, libros y capítulos arbitrados, tras consolidar duplicados. <b>Es producción, no citas.</b> El índice h depende de cuántas citas reciban estas obras.</div></div>
 </div>
 
-<div class="banner"><span>⚠️</span><span><b>Lectura honesta:</b> de <span class="mTotal"></span> productos, solo <b><span class="mNuc"></span> obras</b> (artículos, libros y capítulos) acumulan citas académicas. Las <b><span class="mPrensa"></span> piezas de prensa y opinión (<span class="mPrensaPct"></span>%)</b> son divulgación, no investigación arbitrada.</span></div>
+<div class="banner" id="banner"><span>⚠️</span><span><b>Lectura honesta:</b> de <span class="mTotal"></span> productos, solo <b><span class="mNuc"></span> obras</b> (artículos, libros y capítulos) acumulan citas académicas. Las <b><span class="mPrensa"></span> piezas de prensa y opinión (<span class="mPrensaPct"></span>%)</b> son divulgación, no investigación arbitrada.</span></div>
 
 <div class="metrics">
   <div class="m"><div class="k">Productos totales</div><div class="v mTotal"></div><div class="s">archivo cargado</div></div>
@@ -288,6 +294,8 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
     <button class="actbtn" onclick="restorePrefill()">Restaurar citas del archivo</button>
     <button class="actbtn" onclick="clearAll()">Borrar todo</button>
   </div>
+  <div class="callout warn" id="nocites" style="display:none"><b>Este archivo no trae citas (o están en 0), por eso el índice h es 0.</b>
+    <p class="body" style="margin:6px 0 0">Para completarlo: <b>1)</b> usa los enlaces «Buscar citas» bajo cada obra de la lista de abajo (Google Scholar · Dimensions · Scopus) y escribe el número en su casilla, o <b>2)</b> agrega al Excel las columnas <code>Scopus</code>, <code>Dimensions</code> o <code>Scholar</code> con las citas y vuelve a subirlo. El índice h se recalcula al instante.</p></div>
   <div class="hresult">
     <div class="hbox click" data-k="h" onclick="showDetail('h')" tabindex="0" role="button"><div class="ht">Índice h</div><div class="hn" id="hVal">0</div><div class="hint">Clic para ver el detalle ›</div></div>
     <div class="hbox alt click" data-k="tot" onclick="showDetail('tot')" tabindex="0" role="button"><div class="ht">Citas totales</div><div class="hn" id="hTot">0</div><div class="hint">Clic para ver el detalle ›</div></div>
@@ -336,6 +344,8 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
   </div>
   <p class="body" style="font-size:12.5px;margin-top:12px">La barra clara es el total por año; la oscura, solo el núcleo citable.</p>
 
+  <div id="extras"></div>
+
   <h4 class="st2">Todos los productos</h4>
   <input class="search" id="searchInput" placeholder="Buscar por nombre…" oninput="filterP()">
   <div class="filters" id="filters">
@@ -346,7 +356,7 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
     <button class="fbtn" onclick="setF('Divulgación pública',this)">Divulgación</button>
   </div>
   <div class="tinfo" id="tinfo"></div>
-  <table><thead><tr><th style="width:34px">#</th><th>Nombre del producto</th><th style="width:52px">Año</th><th style="width:200px">Categoría (enlace al artículo)</th><th style="width:60px">Citas</th><th style="width:110px">Fecha de consulta</th></tr></thead><tbody id="ptable"></tbody></table>
+  <table><thead><tr><th style="width:34px">#</th><th>Nombre del producto</th><th style="width:52px">Año</th><th id="thix" style="width:90px">Indexación</th><th style="width:200px">Categoría (enlace al artículo)</th><th style="width:60px">Citas</th><th style="width:110px">Fecha de consulta</th></tr></thead><tbody id="ptable"></tbody></table>
   <div class="pager"><button onclick="prevP()">← Anterior</button><span id="pinfo"></span><button onclick="nextP()">Siguiente →</button></div>
 </div>
 
@@ -429,6 +439,7 @@ const gcount={};ALL.forEach(o=>{const g=groupOf(o.c);gcount[g]=(gcount[g]||0)+1;
 const GROUPS=GROUP_ORDER.filter(g=>gcount[g]);const GVALS=GROUPS.map(g=>gcount[g]);
 const CATCOLOR={'Artículo en revista especializada':'#2C6E80','Libro resultado de investigación':'#1E4F5E','Capítulo de libro':'#3A8095','Capítulo de libro (otro)':'#3A8095','Obra de arte/diseño':'#7C4A63','Prensa (periódico)':'#B5713A','Columna de opinión':'#C98A52','Revista de divulgación':'#9A8456','Divulgación pública':'#4E7A4E','Datos complementarios':'#8A969A','Trabajos dirigidos/Tutorías':'#6E7A82','Producción técnica':'#A6643C','Apropiación social':'#5E8A7A','Demás trabajos':'#9AA0A2','Working paper':'#9A8456','Introducción':'#9A8456','Libro de divulgación/formación':'#9A8456','Otro':'#9AA0A2'};
 
+const HASIX=ALL.some(p=>p.ix);
 // ===== META =====
 function applyMeta(){
  const total=ALL.length, nuc=NUC.length;
@@ -444,6 +455,8 @@ function applyMeta(){
  set('mTotal',total);set('mNuc',nuc);set('mArte',arte);set('mPrensa',prensa);set('mPrensaPct',pct);
  set('mYmin',ymin);set('mYmax',ymax);set('mNucComp',comp);set('mNucCompShort',partsShort.join(', '));
  set('mFile',META.file);set('mDate',META.date);
+ if(!prensa){const b=document.getElementById('banner');if(b)b.style.display='none';}
+ if(!HASIX){const t=document.getElementById('thix');if(t)t.style.display='none';}
 }
 
 // ===== TABS =====
@@ -455,11 +468,24 @@ function showTab(id,btn){document.querySelectorAll('.tab').forEach(t=>t.classLis
 // ===== CALCULATOR =====
 let CITES=NUC.map(o=>o.cites||0);
 function hIndex(arr){const s=arr.slice().sort((a,b)=>b-a);let h=0;for(let i=0;i<s.length;i++){if(s[i]>=i+1)h=i+1;else break;}return h;}
+function unesc(s){return String(s).replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');}
+function qlinks(o){const t=unesc(o.n).replace(/\s+/g,' ').trim(),q=encodeURIComponent(t),qq=encodeURIComponent('"'+t+'"');
+ return '<a href="https://scholar.google.com/scholar?q='+qq+'" target="_blank" rel="noopener">Google Scholar</a> · <a href="https://app.dimensions.ai/discover/publication?search_text='+q+'" target="_blank" rel="noopener">Dimensions</a> · <a href="https://www.scopus.com/results/results.uri?src=s&s=TITLE('+qq+')" target="_blank" rel="noopener">Scopus</a>';}
+function countBy(k){const m={};ALL.forEach(p=>{const v=(p[k]||'').trim();if(v)m[v]=(m[v]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+function barsHtml(title,en){if(!en.length)return '';const mx=en[0][1];
+ return '<div class="chartbox"><h4 class="st2" style="margin-top:0">'+title+'</h4>'+en.slice(0,12).map(e=>'<div class="br"><span title="'+e[0]+'">'+e[0]+'</span><span class="barw"><span class="bar" style="width:'+Math.round(e[1]/mx*100)+'%"></span></span><b>'+e[1]+'</b></div>').join('')+'</div>';}
+function authorsHtml(){const m=new Map();NUC.forEach((o,i)=>(o.a||[]).forEach(n=>{if(!m.has(n))m.set(n,[]);m.get(n).push(CITES[i]||0);}));
+ const rows=[...m.entries()].map(e=>({n:e[0],c:e[1],h:hIndex(e[1]),t:e[1].reduce((a,b)=>a+b,0)})).sort((a,b)=>b.h-a.h||b.t-a.t||b.c.length-a.c.length);
+ if(rows.length<2)return '';
+ return '<div class="chartbox"><h4 class="st2" style="margin-top:0">Autores del grupo ('+rows.length+')</h4><table class="dlist"><thead><tr><th>Autor</th><th style="width:50px">Obras</th><th style="width:50px">Citas</th><th style="width:30px">h</th></tr></thead><tbody>'+rows.slice(0,15).map(r=>'<tr><td>'+r.n+'</td><td>'+r.c.length+'</td><td>'+r.t+'</td><td><b>'+r.h+'</b></td></tr>').join('')+'</tbody></table>'+(rows.length>15?'<p class="tinfo" style="margin:6px 0 0">Se muestran los 15 primeros.</p>':'')+'</div>';}
+function buildExtras(){const el=document.getElementById('extras');if(!el)return;
+ const blocks=[barsHtml('Por categoría de indexación',countBy('ix')),barsHtml('Por facultad',countBy('fa')),barsHtml('Por programa',countBy('pr')),authorsHtml()].filter(Boolean);
+ el.innerHTML=blocks.length?'<h4 class="st2">Desglose del archivo</h4><div class="grid2">'+blocks.join('')+'</div>':'';}
 function buildCalc(){
  const c=document.getElementById('calcList');
  if(!NUC.length){c.innerHTML='<p class="body" style="padding:12px 0">El archivo no contiene obras citables (artículos, libros o capítulos), así que no hay índice h que calcular.</p>';return;}
  c.innerHTML=NUC.map((o,i)=>`<div class="calcrow"><div class="rank">${i+1}</div>
-   <div><div class="nm">${o.n}<span class="tpill">${o.t}</span></div><div class="yrtag">${o.y||''}</div></div>
+   <div><div class="nm">${o.n}<span class="tpill">${o.t}</span></div><div class="yrtag">${o.y||''}</div><div class="qlinks">Buscar citas: ${qlinks(o)}</div></div>
    <div><input class="citein" type="number" min="0" step="1" value="${CITES[i]||''}" placeholder="0" oninput="onCite(${i},this.value)"></div></div>`).join('');
 }
 function onCite(i,v){CITES[i]=Math.max(0,parseInt(v)||0);recompute();}
@@ -468,7 +494,7 @@ function recompute(){
  document.getElementById('hVal').textContent=h;
  const hh=document.getElementById('heroH');hh.textContent=h;hh.style.color=h>0?'var(--teal-d)':'var(--ink3)';
  document.getElementById('hTot').textContent=tot;document.getElementById('hMax').textContent=mx;document.getElementById('hI10').textContent=i10;
- drawH();drawSteps();if(DETK)showDetail(DETK,true);
+ drawH();drawSteps();buildExtras();const nc=document.getElementById('nocites');if(nc)nc.style.display=(NUC.length&&tot===0)?'block':'none';if(DETK)showDetail(DETK,true);
 }
 let DETK=null;
 function showDetail(k,noscroll){
@@ -554,7 +580,7 @@ function render(){const tb=document.getElementById('ptable'),s=(page-1)*SIZE,sl=
  document.getElementById('tinfo').textContent=`Mostrando ${filtered.length?s+1:0}–${Math.min(s+SIZE,filtered.length)} de ${filtered.length} productos`;
  document.getElementById('pinfo').textContent=`Página ${page} de ${Math.ceil(filtered.length/SIZE)||1}`;
  tb.innerHTML=sl.map((p,j)=>`<tr class="${p.nu?'core':''}"><td class="rank">${s+j+1}</td>
-   <td class="nombre">${p.nu?'★ ':''}${p.n}</td><td class="yr">${p.y||''}</td>
+   <td class="nombre">${p.nu?'★ ':''}${p.n}${[p.j,p.au].filter(Boolean).length?'<div class="sub2">'+[p.j,p.au].filter(Boolean).join(' · ')+'</div>':''}</td><td class="yr">${p.y||''}</td>${HASIX?`<td class="yr">${p.ix||'—'}</td>`:''}
    <td>${p.l?`<a class="badge" href="${p.l}" target="_blank" rel="noopener" title="Abrir artículo" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c} ↗</a>`:`<span class="badge" style="background:${(CATCOLOR[p.c]||'#999')}22;color:${CATCOLOR[p.c]||'#666'}">${p.c}</span>`}</td><td class="yr">${p.ct||''}</td><td class="yr">${p.d||'—'}</td></tr>`).join('');}
 function prevP(){if(page>1){page--;render();}}
 function nextP(){if(page<Math.ceil(filtered.length/SIZE)){page++;render();}}
@@ -575,15 +601,15 @@ applyMeta();buildCalc();recompute();apply();
 </script>
 
 
-<script src="js/core/utils.js?v=20261007d"></script>
-<script src="js/core/registry.js?v=20261007d"></script>
-<script src="js/sources/gruplac.js?v=20261007d"></script>
-<script src="js/sources/scopus.js?v=20261007d"></script>
-<script src="js/sources/scholar.js?v=20261007d"></script>
-<script src="js/sources/dimensions.js?v=20261007d"></script>
-<script src="js/sources/generic.js?v=20261007d"></script>
-<script src="js/core/analyze.js?v=20261007d"></script>
-<script src="js/report.js?v=20261007d"></script>
-<script src="js/template.js?v=20261007d"></script>
-<script src="js/app.js?v=20261007d"></script>
+<script src="js/core/utils.js?v=20261007e"></script>
+<script src="js/core/registry.js?v=20261007e"></script>
+<script src="js/sources/gruplac.js?v=20261007e"></script>
+<script src="js/sources/scopus.js?v=20261007e"></script>
+<script src="js/sources/scholar.js?v=20261007e"></script>
+<script src="js/sources/dimensions.js?v=20261007e"></script>
+<script src="js/sources/generic.js?v=20261007e"></script>
+<script src="js/core/analyze.js?v=20261007e"></script>
+<script src="js/report.js?v=20261007e"></script>
+<script src="js/template.js?v=20261007e"></script>
+<script src="js/app.js?v=20261007e"></script>
 </body></html>

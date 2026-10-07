@@ -29,12 +29,16 @@ window.HI = window.HI || {};
             exclude: ['issn', 'consulta'] },
     date: { aliases: ['fecha de consulta', 'fecha consulta', 'fecha de consulta de citas', 'fecha de acceso', 'fecha acceso', 'consulta', 'accessed', 'access date', 'date accessed', 'retrieved', 'date retrieved'],
             exclude: [] },
+    journal: { aliases: ['revista', 'journal', 'source title', 'nombre de la revista', 'publicacion en', 'fuente'], exclude: ['issn', 'enlace'] },
+    index: { aliases: ['categoria de indexacion', 'indexacion', 'cuartil', 'quartile', 'clasificacion', 'categoria publindex', 'sjr quartile'], exclude: [] },
+    faculty: { aliases: ['facultad', 'faculty', 'departamento'], exclude: [] },
+    program: { aliases: ['programa', 'program', 'programa academico', 'carrera'], exclude: [] },
     author: { aliases: ['authors', 'author', 'autores', 'autor', 'author full names', 'author names', 'creators', 'investigador', 'investigadores', 'docente', 'nombre del autor', 'author s'],
               exclude: ['id', 'affiliation', 'afiliacion', 'email', 'keyword', 'correspond', 'address'] }
   };
 
   HI.FIELD_NAMES = Object.keys(FIELDS);
-  HI.FIELD_LABELS = { title: 'Título / nombre', year: 'Año', cites: 'Citas', type: 'Tipo de producto', author: 'Autor(es)', link: 'Enlace al artículo', date: 'Fecha de consulta' };
+  HI.FIELD_LABELS = { title: 'Título / nombre', year: 'Año', cites: 'Citas', type: 'Tipo de producto', author: 'Autor(es)', link: 'Enlace al artículo', date: 'Fecha de consulta', journal: 'Revista', index: 'Indexación (Q, A1…)', faculty: 'Facultad', program: 'Programa' };
 
   HI.Sources = {
     register(s) { list.push(s); },

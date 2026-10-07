@@ -2,7 +2,7 @@
  * y la convierte en una lista normalizada de obras. No conoce formatos concretos:
  * todo lo específico vive en js/sources/. */
 (function (HI) {
-  const FIELD_ORDER = ['title', 'year', 'type', 'author', 'link', 'date', 'cites'];
+  const FIELD_ORDER = ['title', 'year', 'index', 'type', 'author', 'link', 'date', 'journal', 'faculty', 'program', 'cites'];
 
   function wordHas(h, w) { return (' ' + h + ' ').indexOf(' ' + w + ' ') >= 0; }
   function matchScore(h, alias) {
@@ -49,7 +49,7 @@
     H.forEach((h, c) => { if (!h) return; FIELD_ORDER.forEach(f => { const s = fieldScore(h, f); if (s) cand.push({ f, c, s }); }); });
     cand.sort((a, b) => b.s - a.s || FIELD_ORDER.indexOf(a.f) - FIELD_ORDER.indexOf(b.f) || a.c - b.c);
 
-    const map = { title: -1, year: -1, type: -1, author: -1, link: -1, date: -1, cites: [] };
+    const map = { title: -1, year: -1, type: -1, author: -1, link: -1, date: -1, journal: -1, index: -1, faculty: -1, program: -1, cites: [] };
     const used = new Set(), how = {};
     cand.forEach(x => {
       if (used.has(x.c)) return;
@@ -143,14 +143,16 @@
       const cites = cs.reduce((m, x) => Math.max(m, x[1]), 0);
       res.items.push({ cs, n, y: map.year >= 0 ? HI.parseYear(row[map.year]) : null, c: k.c, nu: k.nu, t: k.t, cites,
         a: map.author >= 0 ? splitAuthors(row[map.author]) : [],
-        l: map.link >= 0 ? HI.cleanUrl(row[map.link]) : '', d: map.date >= 0 ? HI.fmtDate(row[map.date]) : '' });
+        l: map.link >= 0 ? HI.cleanUrl(row[map.link]) : '', d: map.date >= 0 ? HI.fmtDate(row[map.date]) : '',
+        j: map.journal >= 0 ? HI.cleanText(row[map.journal]) : '', ix: map.index >= 0 ? HI.cleanText(row[map.index]) : '',
+        fa: map.faculty >= 0 ? HI.cleanText(row[map.faculty]) : '', pr: map.program >= 0 ? HI.cleanText(row[map.program]) : '' });
     }
     return res;
   }
 
   // Une items de una o varias hojas/archivos: lista completa, núcleo sin duplicados y resumen por autor.
   function finalize(items) {
-    const ALL = items.map(o => ({ n: o.n, y: o.y, c: o.c, nu: o.nu, l: o.l, d: o.d, ct: o.cites }));
+    const ALL = items.map(o => ({ n: o.n, y: o.y, c: o.c, nu: o.nu, l: o.l, d: o.d, ct: o.cites, j: o.j, ix: o.ix, fa: o.fa, pr: o.pr, au: o.a.join('; ') }));
     const map = new Map();
     items.forEach(o => {
       if (!o.nu) return;

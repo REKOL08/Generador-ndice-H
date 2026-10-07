@@ -69,7 +69,7 @@
     if (res) {
       res.warnings.forEach(w => msgs.push({ t: 'warn', h: '<span>' + esc(w) + '</span>' }));
       if (res.map && res.map.title >= 0) {
-        if (!res.map.cites.length) msgs.push({ t: 'warn', h: '<span>No se encontró una columna de <b>citas</b>. El informe se genera igual y puedes ingresar las citas en su calculadora, o elegir la columna en «Columnas detectadas».</span>' });
+        if (!res.map.cites.length) msgs.push({ t: 'warn', h: '<span>Tu Excel <b>no trae columnas de citas</b> (Scopus, Dimensions o Scholar), por eso el índice h sale en 0. El informe se genera igual: en su calculadora cada obra tiene accesos directos para buscar las citas en Google Scholar, Dimensions y Scopus. También puedes agregar esas columnas al Excel y volver a subirlo.</span>' });
         if (res.how.title === 'contenido') msgs.push({ t: 'warn', h: '<span>La columna de títulos se adivinó por su contenido; verifícala en «Columnas detectadas».</span>' });
       }
       if (res.otros) msgs.push({ t: 'warn', h: `<span><b>${res.otros}</b> registro(s) con un «Tipo» no reconocido quedaron como «Otro».</span>` });
