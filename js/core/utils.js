@@ -65,5 +65,15 @@ window.HI = window.HI || {};
       total: cites.reduce((a, b) => a + b, 0), max: cites.length ? Math.max.apply(null, cites) : 0, n: cites.length };
   };
 
+  // Nombre corto de la fuente de citas según el encabezado de la columna.
+  HI.sourceLabel = function (h) {
+    const n = HI.norm(h);
+    if (n.includes('scopus')) return 'Scopus';
+    if (n.includes('dimension')) return 'Dimensions';
+    if (n.includes('scholar') || n.includes('gscholar')) return 'Google Scholar';
+    if (n.includes('altmetric')) return 'Altmetric';
+    return String(h).trim() || 'Citas';
+  };
+
   HI.escapeHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 })(window.HI);

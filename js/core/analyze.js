@@ -139,8 +139,9 @@
       const tipo = map.type >= 0 ? row[map.type] : '';
       const k = classify(tipo, n) || { c: 'Otro', nu: 0, t: '' };
       if (k.c === 'Otro') res.otros++;
-      const cites = map.cites.reduce((m, c) => Math.max(m, HI.num(row[c])), 0);
-      res.items.push({ n, y: map.year >= 0 ? HI.parseYear(row[map.year]) : null, c: k.c, nu: k.nu, t: k.t, cites,
+      const cs = map.cites.map(c => [HI.sourceLabel(headers[c]), HI.num(row[c])]);
+      const cites = cs.reduce((m, x) => Math.max(m, x[1]), 0);
+      res.items.push({ cs, n, y: map.year >= 0 ? HI.parseYear(row[map.year]) : null, c: k.c, nu: k.nu, t: k.t, cites,
         a: map.author >= 0 ? splitAuthors(row[map.author]) : [],
         l: map.link >= 0 ? HI.cleanUrl(row[map.link]) : '', d: map.date >= 0 ? HI.fmtDate(row[map.date]) : '' });
     }
@@ -155,8 +156,8 @@
       if (!o.nu) return;
       const key = HI.norm(o.n);
       const ex = map.get(key);
-      if (!ex) map.set(key, { n: o.n, y: o.y, t: o.t, cites: o.cites, a: o.a.slice(), l: o.l, d: o.d });
-      else { ex.cites = Math.max(ex.cites, o.cites); if (!ex.y && o.y) ex.y = o.y; if (!ex.l && o.l) ex.l = o.l; if (!ex.d && o.d) ex.d = o.d; o.a.forEach(x => { if (!ex.a.includes(x)) ex.a.push(x); }); }
+      if (!ex) map.set(key, { n: o.n, y: o.y, t: o.t, cites: o.cites, a: o.a.slice(), l: o.l, d: o.d, cs: o.cs });
+      else { if (o.cites > ex.cites) ex.cs = o.cs; ex.cites = Math.max(ex.cites, o.cites); if (!ex.y && o.y) ex.y = o.y; if (!ex.l && o.l) ex.l = o.l; if (!ex.d && o.d) ex.d = o.d; o.a.forEach(x => { if (!ex.a.includes(x)) ex.a.push(x); }); }
     });
     const NUC = [...map.values()];
     const au = new Map();

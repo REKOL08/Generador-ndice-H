@@ -202,6 +202,14 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
 .hbox{flex:1;min-width:135px;background:var(--teal-d);color:#fff;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center}
 .hbox .hn{font-family:'Fraunces',serif;font-size:52px;line-height:1;color:#F3E2C9}
 .hbox .ht{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.85;margin-bottom:4px}
+.hbox.click{cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.hbox.click:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(30,79,94,.18)}
+.hbox.click.sel{outline:3px solid var(--ochre);outline-offset:2px}
+.hbox .hint{font-size:11px;margin-top:6px;opacity:.75;font-weight:600}
+.dlist{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.dlist th{text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--ink2);padding:6px 8px;border-bottom:1.5px solid var(--line2)}
+.dlist td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.dlist a{color:var(--teal-d);font-weight:600;text-decoration:none}.dlist a:hover{text-decoration:underline}
 .hbox.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .hbox.alt .hn{color:var(--teal-d);font-size:38px}
 .search{width:100%;padding:9px 13px;font-size:13.5px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--ink);font-family:inherit;margin-bottom:12px}
@@ -266,12 +274,13 @@ a.badge{text-decoration:none}a.badge:hover{filter:brightness(.92);text-decoratio
     <button class="actbtn" onclick="clearAll()">Borrar todo</button>
   </div>
   <div class="hresult">
-    <div class="hbox"><div class="ht">Índice h</div><div class="hn" id="hVal">0</div></div>
-    <div class="hbox alt"><div class="ht">Citas totales</div><div class="hn" id="hTot">0</div></div>
-    <div class="hbox alt"><div class="ht">Citas máx.</div><div class="hn" id="hMax">0</div></div>
-    <div class="hbox alt"><div class="ht">i10 (≥10 citas)</div><div class="hn" id="hI10">0</div></div>
+    <div class="hbox click" data-k="h" onclick="showDetail('h')" tabindex="0" role="button"><div class="ht">Índice h</div><div class="hn" id="hVal">0</div><div class="hint">Clic para ver el detalle ›</div></div>
+    <div class="hbox alt click" data-k="tot" onclick="showDetail('tot')" tabindex="0" role="button"><div class="ht">Citas totales</div><div class="hn" id="hTot">0</div><div class="hint">Clic para ver el detalle ›</div></div>
+    <div class="hbox alt click" data-k="max" onclick="showDetail('max')" tabindex="0" role="button"><div class="ht">Citas máx.</div><div class="hn" id="hMax">0</div><div class="hint">Clic: ¿cuál obra es? ›</div></div>
+    <div class="hbox alt click" data-k="i10" onclick="showDetail('i10')" tabindex="0" role="button"><div class="ht">i10 (≥10 citas)</div><div class="hn" id="hI10">0</div><div class="hint">Clic para ver el detalle ›</div></div>
   </div>
-  <div class="callout"><h4 class="st2" style="margin-top:0">¿Cómo se calcula? La fórmula paso a paso</h4>
+  <div class="callout" id="detail" style="display:none"></div>
+  <div class="callout" id="formula"><h4 class="st2" style="margin-top:0">¿Cómo se calcula? La fórmula paso a paso</h4>
     <div class="fx">h = el mayor número <i>i</i> tal que la obra n.º <i>i</i> tiene al menos <i>i</i> citas</div>
     <ol class="steps">
       <li><b>Ordena</b> las obras de la que más citas tiene a la que menos.</li>
@@ -444,8 +453,33 @@ function recompute(){
  document.getElementById('hVal').textContent=h;
  const hh=document.getElementById('heroH');hh.textContent=h;hh.style.color=h>0?'var(--teal-d)':'var(--ink3)';
  document.getElementById('hTot').textContent=tot;document.getElementById('hMax').textContent=mx;document.getElementById('hI10').textContent=i10;
- drawH();drawSteps();
+ drawH();drawSteps();if(DETK)showDetail(DETK,true);
 }
+let DETK=null;
+function showDetail(k,noscroll){
+ DETK=k;const box=document.getElementById('detail');
+ document.querySelectorAll('.hbox.click').forEach(b=>b.classList.toggle('sel',b.dataset.k===k));
+ if(!NUC.length){box.style.display='block';box.innerHTML='<p class="body" style="margin:0">El archivo no tiene obras citables.</p>';return;}
+ const ord=NUC.map((o,i)=>({o:o,c:CITES[i]||0,man:(CITES[i]||0)!==(o.cites||0)})).sort((a,b)=>b.c-a.c);
+ const h=hIndex(CITES),tot=CITES.reduce((a,b)=>a+b,0),mx=ord[0].c;
+ const nm=r=>r.o.l?'<a href="'+r.o.l+'" target="_blank" rel="noopener">'+r.o.n+' ↗</a>':r.o.n;
+ const src=r=>r.man?'<i>ajustado manualmente</i>':((r.o.cs&&r.o.cs.length)?r.o.cs.map(x=>x[0]+': <b>'+x[1]+'</b>').join(' · '):'—');
+ const tbl=rows=>'<table class="dlist"><thead><tr><th style="width:34px">#</th><th>Obra (clic para abrirla)</th><th style="width:60px">Citas</th><th style="width:260px">¿De qué fuente vienen?</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+nm(r)+'<div class="yrtag">'+(r.o.y||'')+'</div></td><td><b>'+r.c+'</b></td><td>'+src(r)+'</td></tr>').join('')+'</tbody></table>';
+ let t='';
+ if(k==='h'){const core=ord.slice(0,h);
+  t='<h4 class="st2" style="margin-top:0">Índice h = '+h+'</h4><p class="body">Significa que hay <b>'+h+' obra(s) con al menos '+h+' citas cada una</b>. Estas son las que forman tu «núcleo h»:</p>'+(h?tbl(core):'<p class="body">Ninguna obra tiene citas todavía.</p>')+
+   (ord[h]?'<p class="body" style="margin-top:10px">La siguiente obra (n.º '+(h+1)+') tiene <b>'+ord[h].c+'</b> citas, menos de '+(h+1)+', por eso el índice no sube. Para llegar a h = '+(h+1)+' necesitarías '+(h+1)+' obras con ≥ '+(h+1)+' citas.</p>':'')+
+   '<p class="body"><button class="actbtn" onclick="document.getElementById(\'formula\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">Ver la fórmula paso a paso ↓</button></p>';}
+ else if(k==='tot'){t='<h4 class="st2" style="margin-top:0">Citas totales = '+tot+'</h4><p class="body">Es la suma de las citas de las '+ord.length+' obras citables. Para cada obra se toma el <b>mayor valor entre las fuentes</b> (Scopus, Dimensions, Google Scholar); las fuentes no se suman entre sí para no contar dos veces la misma cita.</p>'+tbl(ord);}
+ else if(k==='max'){const top=ord.filter(r=>r.c===mx);
+  t='<h4 class="st2" style="margin-top:0">Citas máximas = '+mx+'</h4><p class="body">'+(mx?(top.length>1?'Hay '+top.length+' obras empatadas con':'La obra más citada tiene')+' <b>'+mx+'</b> citas. '+(top.length>1?'Son:':'Es esta (clic en el título para abrirla):'):'Ninguna obra tiene citas todavía.')+'</p>'+(mx?tbl(top):'');}
+ else{const r10=ord.filter(r=>r.c>=10);
+  t='<h4 class="st2" style="margin-top:0">i10 = '+r10.length+'</h4><p class="body">Es el número de obras con <b>10 citas o más</b>. Complementa al índice h: muestra cuántas obras tienen un impacto ya consolidado.</p>'+(r10.length?tbl(r10):'<p class="body">Ninguna obra llega todavía a 10 citas.</p>');}
+ box.innerHTML=t+'<p class="body" style="margin:10px 0 0"><button class="actbtn" onclick="closeDetail()">Cerrar detalle ✕</button></p>';
+ box.style.display='block';if(!noscroll)box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeDetail(){DETK=null;document.getElementById('detail').style.display='none';document.querySelectorAll('.hbox.click').forEach(b=>b.classList.remove('sel'));}
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('click')){e.preventDefault();showDetail(e.target.dataset.k);}});
 function drawSteps(){
  const tb=document.getElementById('hSteps'),cc=document.getElementById('hConc');if(!tb)return;
  if(!NUC.length){tb.innerHTML='';cc.textContent='';return;}
